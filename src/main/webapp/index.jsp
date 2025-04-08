@@ -1,4 +1,8 @@
+
 <%@ page import="java.sql.*" %>
+<!--# 
+#//set dbUser=avnadmin
+//set dbPassword=AVNS_v6Of1LG2FuojSos4Hvk -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <html>
 <head>
@@ -14,6 +18,9 @@
         Password: <input type="password" name="password"><br>
         <input type="submit" value="Login">
     </center>
+
+
+    
     <%
     String user = request.getParameter("username");
     String pass = request.getParameter("password");
@@ -22,16 +29,12 @@
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            // Load PostgreSQL Driver
             Class.forName("org.postgresql.Driver");
-            // Database connection details
             String url = "jdbc:postgresql://pg-7df2fd3-waleedgamal2821-a9bd.l.aivencloud.com:14381/defaultdb?sslmode=require";
-          String dbUser = System.getenv("DB_USER");
-            String dbPassword = System.getenv("DB_PASSWORD");
-
+          String dbUser = "avnadmin";
+            String dbPassword = "AVNS_v6Of1LG2FuojSos4Hvk";
             conn = DriverManager.getConnection(url, dbUser, dbPassword);
-            // Query to check if user exists
-            String sql = "SELECT * FROM users WHERE username=? AND password=?";
+            String sql = "SELECT * FROM users WHERE username= ? AND password= ?";
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, user);
             stmt.setString(2, pass);
