@@ -1,62 +1,75 @@
+/* General Reset */
 * {
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-  }
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
 
-  body {
-    margin: 0;
-    display: flex;
-    height: 100vh;
-  }
+body {
+  margin: 0;
+  display: flex;
+  background-color: #f4f7fa;
+  height: 100vh;
+}
 
-  aside {
-    width: 220px;
-    background-color: #eaf7f0;
-    padding: 20px;
-  }
+.sidebar {
+  width: 220px;
+  background-color: #e0f7fa;
+  padding: 20px 10px;
+  height: 100vh;
+  position: fixed;
+}
 
-  aside h2 {
-    font-size: 18px;
-    margin-bottom: 5px;
-  }
+.sidebar h3 {
+  font-size: 16px;
+  margin-bottom: 30px;
+  color: #00796b;
+}
 
-  aside p {
-    font-size: 13px;
-    color: gray;
-  }
+.sidebar small {
+  font-weight: normal;
+  font-size: 12px;
+  color: #00796b;
+}
 
-  aside ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 30px;
-  }
-  aside ul li {
-  margin: 15px 0;
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 10px 5px;
+  margin-bottom: 5px;
   cursor: pointer;
+  font-weight: bold;
+  color: #00796b;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #333;
 }
 
-aside ul li i {
-  width: 20px;
+.sidebar ul li i {
+  margin-right: 10px;
+  color: #00796b;
 }
 
-aside ul li:hover {
-  color: #0aa96d;
+.sidebar ul li:hover,
+.sidebar ul li.active {
+  background-color: #c2e7dc;
+  border-radius: 8px;
 }
 
-main {
-  flex: 1;
+.content {
+  margin-left: 240px;
   padding: 40px;
+  width: calc(100% - 240px);
+  height: 100vh;
+  overflow-y: auto;
 }
 
 h1 {
-  color: #0aa96d;
+  color: #00a97f;
   font-size: 22px;
   margin-bottom: 40px;
-justify-content: center;
+  text-align: center;
 }
 
 .profile-card {
@@ -64,14 +77,18 @@ justify-content: center;
   padding: 30px;
   width: 350px;
   border-radius: 12px;
-  box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .profile-card .avatar {
-  width: 80px;   height: 80px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background-color: lightgray;
-  margin-bottom: 10px;
+  margin: 0 auto 10px;
 }
 
 .profile-card input {
@@ -79,12 +96,12 @@ justify-content: center;
   margin: 8px 0;
   padding: 8px;
   border: none;
-  border-bottom: 1px solid #0aa96d;
+  border-bottom: 1px solid #00a97f;
   outline: none;
 }
 
 .profile-card button {
-  background-color: #0aa96d;
+  background-color: #00a97f;
   color: white;
   padding: 10px 16px;
   border: none;
@@ -92,7 +109,8 @@ justify-content: center;
   margin-top: 10px;
   cursor: pointer;
 }
+
 .profile-card button:hover {
-  background-color: #088c5c;
-  
+  background-color: #00796b;
 }
+

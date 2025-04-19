@@ -1,93 +1,128 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
 
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-  }
-  
-  .sidebar {
-    width: 220px;
-    background-color: #e0f3ec;
-    height: 100vh;
-    position: fixed;
-    padding: 20px 10px;
-  }
-  
-  .sidebar h3 {
-    font-size: 16px;
-    margin-bottom: 30px;
-  }
-  
-  .sidebar p {
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .sidebar p i {
-    margin-right: 10px;
-    color: #008060;
-  }
-  
-  .main {
-    margin-left: 240px;
-    padding: 20px;
-  }
-  
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-  }
-  
-  .header h2 {
-    color: #00a97f;
-  }
-  
-  .content-box {
-    background-color: white;
-    border-radius: 20px;
-    padding: 20px;
-    width: fit-content;
-    margin: auto;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  canvas {
-    max-width: 400px;
-    margin: auto;
-  }
-  
-  .income-entry {
-    background-color: #f5f5f5;
-    border-radius: 10px;
-    padding: 10px;
-    margin: 10px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  
-  .actions i {
-    color: red;
-    margin-left: 10px;
-    cursor: pointer;
-  }
-  
-  .add-button {
-    background-color: #00a97f;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    font-size: 24px;
-    cursor: pointer;
-    display: block;
-    margin: 20px auto 0;
-  }
-  
+  margin: 0;
+  background-color: #f4f7fa;
+  display: flex;
+}
+
+.sidebar {
+  width: 220px;
+  background-color: #e0f7fa;
+  height: 100vh;
+  position: fixed;
+  padding: 20px 15px;
+}
+
+.sidebar h3 {
+  font-size: 14px;
+  margin-bottom: 30px;
+  color: #00796b;
+}
+
+.sidebar p {
+  margin: 18px 0;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  color: #00796b;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.sidebar p:hover,
+.sidebar p.active {
+  background-color: #b2dfdb;
+}
+
+.sidebar p i {
+  margin-right: 10px;
+  color: #00796b;
+}
+
+.main {
+  margin-left: 240px;
+  padding: 40px;
+  flex: 1;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header h2 {
+  color: #00a97f;
+  margin: 0;
+}
+
+.content-box {
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  width: fit-content;
+  margin: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+canvas {
+  max-width: 400px;
+  margin: 0 auto 30px;
+  display: block;
+}
+
+.income-entry {
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 320px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.income-entry span {
+  font-weight: bold;
+  color: #00796b;
+}
+
+.actions i {
+  color: red;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.actions i:last-child {
+  color: #00796b;
+}
+
+.actions i:hover {
+  color: #00a97f;
+}
+
+.add-button {
+  background-color: #00a97f;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  cursor: pointer;
+  display: block;
+  margin: 20px auto 0;
+}
+
+.add-button:hover {
+  background-color: #00796b;
+}

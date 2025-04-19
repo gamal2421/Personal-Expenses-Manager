@@ -1,42 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report and analytics</title>
-</head>
-<body>
-    <title>Personal Expenses Manager</title>
-   <link rel="stylesheet" href="styles/reports.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Expenses Manager</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="styles/report.css" />
+
 </head>
 <body>
   <div class="sidebar">
-    <h3>Name<br><small>ethar.waleed@gmail.com</small></h3>
+    <h3>ethar.waleed@gmail.com<br /><small>Personal</small></h3>
     <ul>
-      <li>Profile</li>
-      <li>Settings</li>
-      <li>Notifications</li>
-      <li>Categories</li>
-      <li>Financials</li>
-      <li>Reports</li>
-      <li>Budget</li>
-      <li>Income</li>
-      <li>Charts</li>
+      <li><a href="profilepage.html"><i class="material-icons">person</i> Profile</a></li>
+      <li><a href="Settingspage.html"><i class="material-icons">settings</i> Settings</a></li>
+      <li><a href="#"><i class="material-icons">notifications</i> Notifications</a></li>
+      <li><a href="Categoriespage.html"><i class="material-icons">category</i> Categories</a></li>
+      <li><a href="#"><i class="material-icons">account_balance</i> Financials</a></li>
+      <li><a href="REPORTSandANALYTICS.html"><i class="material-icons">description</i> Reports</a></li>
+      <li><a href="Budgets.html"><i class="material-icons">account_balance_wallet</i> Budget</a></li>
+      <li><a href="INCOME TRACKINGpage.html"><i class="material-icons">attach_money</i> Income</a></li>
+      <li><a href="#"><i class="material-icons">bar_chart</i> Charts</a></li>
     </ul>
   </div>
+
+  
   <div class="content">
-    <h2>Persnal Expenses Manager</h2>
+    <h2>Personal Expenses Manager</h2>
     <h3>Monthly Expenses Report</h3>
     <p>May, 2024</p>
 
     <h4>Category Breakdown</h4>
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Amount Spent</th>
-          <th>Percentage Of Total</th>
-        </tr>  </thead>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount Spent</th>
+            <th>Percentage Of Total</th>
+          </tr>
+        </thead>
         <tbody>
           <tr><td>Food</td><td>$700</td><td>14%</td></tr>
           <tr><td>Transactions</td><td>$700</td><td>14%</td></tr>
@@ -44,8 +47,10 @@
           <tr><td>Utilities</td><td>$700</td><td>14%</td></tr>
         </tbody>
       </table>
-  
-      <h4>Detailed Transactions</h4>
+    </div>
+
+    <h4>Detailed Transactions</h4>
+    <div class="table-container">
       <table>
         <thead>
           <tr>
@@ -57,26 +62,27 @@
           </tr>
         </thead>
         <tbody id="transactions-body">
-          <!-- JS can add rows here -->
+          <!-- JavaScript will add rows here -->
         </tbody>
       </table>
-  
-      <div class="summary">
-        <strong>Summary</strong><br>
-        Total Income: $4000<br>
-        Total Expenses: $2350<br>
-        Net Savings: $1200<br>
-        Number of Transactions: 20<br>
-        Average Daily Spending: $75
-      </div>
     </div>
-  
-    <script>
-      // Optional: Add sample rows to transactions
-      const tbody = document.getElementById("transactions-body");
+
+    <div class="summary">
+      <strong>Summary</strong><br>
+      Total Income: $4000<br>
+      Total Expenses: $2350<br>
+      Net Savings: $1200<br>
+      Number of Transactions: 20<br>
+      Average Daily Spending: $75
+    </div>
+  </div>
+
+  <script>
+    // Sample rows for the transactions table
+    const tbody = document.getElementById("transactions-body");
     for (let i = 0; i < 5; i++) {
       let row = document.createElement("tr");
-      row.innerHTML = `
+      row.innerHTML = ` 
         <td>2024-05-0${i + 1}</td>
         <td>Food</td>
         <td>Grocery</td>

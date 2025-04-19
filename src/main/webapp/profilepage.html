@@ -1,50 +1,46 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>yy</title>
-    <link rel="stylesheet" href="yy.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Expenses Manager</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="styles/profile.css">
 </head>
 <body>
-    <title>Persnal Expenses Manager</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
- <link rel="stylesheet" href="styles/profile.css">
-</head>
-<body>
-  <aside>
-    <h2>Name</h2>
-    <p>ethar.waleed@gmail.com</p>
+  <div class="sidebar">
+    <h3>ethar.waleed@gmail.com<br /><small>Personal</small></h3>
     <ul>
-      <li><i class="fas fa-user"></i>Profile</li>
-      <li><i class="fas fa-cog"></i>Settings</li>
-      <li><i class="fas fa-bell"></i>Notifications</li>
-      <li><i class="fas fa-list"></i>Categories</li>
-      <li><i class="fas fa-chart-line"></i>Financials</li>
-      <li><i class="fas fa-file-alt"></i>Reports</li>
-      <li><i class="fas fa-wallet"></i>Budget</li>
-      <li><i class="fas fa-money-bill-wave"></i>Income</li>
-      <li><i class="fas fa-chart-bar"></i>Charts</li>
+      <li><a href="profilepage.html"><i class="material-icons">person</i> Profile</a></li>
+      <li><a href="Settingspage.html"><i class="material-icons">settings</i> Settings</a></li>
+      <li><a href="#"><i class="material-icons">notifications</i> Notifications</a></li>
+      <li><a href="Categoriespage.html"><i class="material-icons">category</i> Categories</a></li>
+      <li><a href="#"><i class="material-icons">account_balance</i> Financials</a></li>
+      <li><a href="REPORTSandANALYTICS.html"><i class="material-icons">description</i> Reports</a></li>
+      <li><a href="Budgets.html"><i class="material-icons">account_balance_wallet</i> Budget</a></li>
+      <li><a href="INCOME TRACKINGpage.html"><i class="material-icons">attach_money</i> Income</a></li>
+      <li><a href="#"><i class="material-icons">bar_chart</i> Charts</a></li>
     </ul>
-  </aside>
+  </div>
 
-  <main>
-    <h1>Persnal Expenses Manager</h1>
+  <div class="content">
+    <h1>Personal Expenses Manager</h1>
     <div class="profile-card">
       <div class="avatar"></div>
-      <p><strong>your name</strong></p>
+      <p><strong>Your Name</strong></p>
       <p>ethar.waleed21nmm</p>
       <input type="text" placeholder="Name" />
       <input type="email" placeholder="Email Account" />
       <input type="tel" placeholder="Phone Number" />
       <button onclick="cancel()">Cancel</button>
     </div>
-  </main>
+  </div>
 
   <script>
-    function cancel() {   document.querySelectorAll('.profile-card input').forEach(input => input.value = '');
+    function cancel() {
+      document.querySelectorAll('.profile-card input').forEach(input => input.value = '');
     }
-  </script>  
-    
+  </script>
 </body>
 </html>

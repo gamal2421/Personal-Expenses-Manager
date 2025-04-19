@@ -2,54 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="styles/incometracking.css">
+  <link rel="stylesheet" href="styles/incometracking.css" />
+  <link rel="stylesheet" href="styles/settings.css">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Expenses Manager</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 <body>
-    <div class="sidebar">
-      <h3>Name</h3>
-      <p>ethar.waleed@gmail.com</p>
-      <ul>
-        <li>Profile</li>
-        <li class="active" onclick="showSettings()">Settings</li>
-        <li>Notifications</li>
-        <li>Categories</li>
-        <li>Financials</li>
-        <li>Reports</li>
-        <li>Budget</li>
-        <li>Income</li>
-        <li>Charts</li>
-      </ul>
-    </div>
+  <div class="sidebar">
+    <h3>ethar.waleed@gmail.com<br /><small>Personal</small></h3>
+    <ul>
+      <li><a href="profilepage.html"><i class="material-icons">person</i> Profile</a></li>
+      <li><a href="Settingspage.html"><i class="material-icons">settings</i> Settings</a></li>
+      <li><a href="#"><i class="material-icons">notifications</i> Notifications</a></li>
+      <li><a href="Categoriespage.html"><i class="material-icons">category</i> Categories</a></li>
+      <li><a href="#"><i class="material-icons">account_balance</i> Financials</a></li>
+      <li><a href="REPORTSandANALYTICS.html"><i class="material-icons">description</i> Reports</a></li>
+      <li><a href="Budgets.html"><i class="material-icons">account_balance_wallet</i> Budget</a></li>
+      <li><a href="INCOME TRACKINGpage.html"><i class="material-icons">attach_money</i> Income</a></li>
+      <li><a href="#"><i class="material-icons">bar_chart</i> Charts</a></li>
+    </ul>
+  </div>
 
   <div class="main">
     <div class="header">
-      <h2>Persnal Expenses Manager</h2>
+      <h2>Personal Expenses Manager</h2>
     </div>
 
     <div class="content-box">
       <canvas id="incomeChart"></canvas>
 
       <div class="income-entry">
-        <span>free lancing : 200$</span>
+        <span>Freelancing: $200</span>
         <div class="actions">
           <i class="material-icons">delete</i>
           <i class="material-icons">edit</i>
         </div>
       </div>
+
       <div class="income-entry">
-        <span>free lancing : 200$</span>
+        <span>Teaching: $150</span>
         <div class="actions">
           <i class="material-icons">delete</i>
           <i class="material-icons">edit</i>
         </div>
       </div>
+
       <div class="income-entry">
-        <span>free lancing : 200$</span>
+        <span>Exchange: $90</span>
         <div class="actions">
           <i class="material-icons">delete</i>
           <i class="material-icons">edit</i>
@@ -65,10 +67,10 @@
     new Chart(ctx, {
       type: 'pie',
       data: {
-        labels: ['freelancing', 'work', 'teaching', 'exchange', 'gsl'],
+        labels: ['Freelancing', 'Work', 'Teaching', 'Exchange', 'GSL'],
         datasets: [{
           label: 'Income',
-          data: [415, 103, 12, 27, 390],
+          data: [415, 103, 150, 90, 390],
           backgroundColor: ['#00a97f', '#33c49f', '#66d9b3', '#99e5cc', '#ccefe5'],
           borderWidth: 1
         }]
