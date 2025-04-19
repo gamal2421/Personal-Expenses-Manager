@@ -1,0 +1,113 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+   
+    position: relative;
+
+}
+
+#container{
+width: 100%;
+height: 100px;
+display: flex;
+justify-content: space-between;
+}
+#logo{
+    display: flex;
+    justify-content: flex-start;
+    color: white;
+    margin-left: 1%;
+}
+ul li{
+    display: inline-block;
+    margin-right: 20px;
+    text-decoration: none;
+} 
+li :hover{
+    transform: scale(1.2);
+    color: rgb(8, 71, 166);
+    display: block;
+}
+
+.line{
+    background-color: black;
+    width: 80px;
+    height: 1.5px;
+    display: none;
+}
+li a{
+    color: aliceblue;
+    text-decoration: none;
+}
+.block{
+    background-image: url(boma.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 100%;
+    padding-left: 2%;
+    gap: 20px;
+    line-height: 40px;
+    height: 1000px;
+
+    color: aliceblue;
+}
+
+
+.box{
+    background-color: rgb(46, 124, 241);
+    height: 300px;
+    width: 650px;
+    padding-top: 30px;
+    padding-bottom: 300px;
+    padding-left: 20px;
+    opacity: 0.7;
+}
+
+
+
+
+
+.title{
+    line-height: 50px;
+    text-align: center;
+    margin-bottom: 40px;
+}
+.parent{
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    grid-template-rows: repeat(2,150px);
+    gap: 10px;
+    margin-bottom: 50px;
+}
+.bucket h1{
+    margin-bottom: 30px;
+}
+.divider{
+    margin-top: 10px;
+    width: 100%;
+    justify-content: center;
+    display: flex;
+    position: relative;
+}
+.line1{
+    background-color: black;
+    width: 80px;
+    height: 1.5px;
+    z-index: 1;
+}
+.circle{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid black;
+    background-color: white;
+    position: absolute;
+    bottom: -3.5px;
+    z-index: 2;
+    justify-content: center;
+}

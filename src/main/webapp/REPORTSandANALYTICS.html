@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report and analytics</title>
+</head>
+<body>
+    <title>Personal Expenses Manager</title>
+   <link rel="stylesheet" href="styles/reports.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h3>Name<br><small>ethar.waleed@gmail.com</small></h3>
+    <ul>
+      <li>Profile</li>
+      <li>Settings</li>
+      <li>Notifications</li>
+      <li>Categories</li>
+      <li>Financials</li>
+      <li>Reports</li>
+      <li>Budget</li>
+      <li>Income</li>
+      <li>Charts</li>
+    </ul>
+  </div>
+  <div class="content">
+    <h2>Persnal Expenses Manager</h2>
+    <h3>Monthly Expenses Report</h3>
+    <p>May, 2024</p>
+
+    <h4>Category Breakdown</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Amount Spent</th>
+          <th>Percentage Of Total</th>
+        </tr>  </thead>
+        <tbody>
+          <tr><td>Food</td><td>$700</td><td>14%</td></tr>
+          <tr><td>Transactions</td><td>$700</td><td>14%</td></tr>
+          <tr><td>Entertainment</td><td>$700</td><td>14%</td></tr>
+          <tr><td>Utilities</td><td>$700</td><td>14%</td></tr>
+        </tbody>
+      </table>
+  
+      <h4>Detailed Transactions</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Payment Method</th>
+          </tr>
+        </thead>
+        <tbody id="transactions-body">
+          <!-- JS can add rows here -->
+        </tbody>
+      </table>
+  
+      <div class="summary">
+        <strong>Summary</strong><br>
+        Total Income: $4000<br>
+        Total Expenses: $2350<br>
+        Net Savings: $1200<br>
+        Number of Transactions: 20<br>
+        Average Daily Spending: $75
+      </div>
+    </div>
+  
+    <script>
+      // Optional: Add sample rows to transactions
+      const tbody = document.getElementById("transactions-body");
+    for (let i = 0; i < 5; i++) {
+      let row = document.createElement("tr");
+      row.innerHTML = `
+        <td>2024-05-0${i + 1}</td>
+        <td>Food</td>
+        <td>Grocery</td>
+        <td>$100</td>
+        <td>Credit Card</td>
+      `;
+      tbody.appendChild(row);
+    }
+  </script>
+</body>
+</html>

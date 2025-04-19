@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles/settings.css">
+</head>
+<body>
+    <title>Persnal Expenses Manager</title>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>Name</h3>
+    <p>ethar.waleed@gmail.com</p>
+    <ul>
+      <li>Profile</li>
+      <li class="active" onclick="showSettings()">Settings</li>
+      <li>Notifications</li>
+      <li>Categories</li>
+      <li>Financials</li>
+      <li>Reports</li>
+      <li>Budget</li>
+      <li>Income</li>
+      <li>Charts</li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <h2>Persnal Expenses Manager</h2>
+    <div class="card" id="settingsCard">
+      <div class="card-item"><i>🔧</i> Theme</div>
+      <div class="card-item"><i>🛡</i> Privacy</div>
+      <div class="card-item"><i>🔔</i> Enable Notification</div>
+    </div>
+  </div>
+
+  <script>
+    function showSettings() {
+      document.getElementById("settingsCard").style.display = "block";
+    }
+  </script>
+</body>
+</html>

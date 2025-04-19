@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles/incometracking.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Expenses Manager</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+    <div class="sidebar">
+      <h3>Name</h3>
+      <p>ethar.waleed@gmail.com</p>
+      <ul>
+        <li>Profile</li>
+        <li class="active" onclick="showSettings()">Settings</li>
+        <li>Notifications</li>
+        <li>Categories</li>
+        <li>Financials</li>
+        <li>Reports</li>
+        <li>Budget</li>
+        <li>Income</li>
+        <li>Charts</li>
+      </ul>
+    </div>
+
+  <div class="main">
+    <div class="header">
+      <h2>Persnal Expenses Manager</h2>
+    </div>
+
+    <div class="content-box">
+      <canvas id="incomeChart"></canvas>
+
+      <div class="income-entry">
+        <span>free lancing : 200$</span>
+        <div class="actions">
+          <i class="material-icons">delete</i>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+      <div class="income-entry">
+        <span>free lancing : 200$</span>
+        <div class="actions">
+          <i class="material-icons">delete</i>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+      <div class="income-entry">
+        <span>free lancing : 200$</span>
+        <div class="actions">
+          <i class="material-icons">delete</i>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+
+      <button class="add-button">+</button>
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('incomeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['freelancing', 'work', 'teaching', 'exchange', 'gsl'],
+        datasets: [{
+          label: 'Income',
+          data: [415, 103, 12, 27, 390],
+          backgroundColor: ['#00a97f', '#33c49f', '#66d9b3', '#99e5cc', '#ccefe5'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
