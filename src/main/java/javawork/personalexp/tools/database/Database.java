@@ -18,13 +18,13 @@ public class Database {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    public static boolean isValidUser(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username=? AND password=?";
+    public static boolean isValidUser(String email, String password) {
+        String sql = "SELECT * FROM users WHERE email =? AND password=?";
         try (
             Connection conn = getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
-            stmt.setString(1, username);
+            stmt.setString(1, email);
             stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
             return rs.next();

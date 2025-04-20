@@ -6,61 +6,89 @@
 body {
   margin: 0;
   background-color: #f4f7fa;
+ 
+  font-family: sans-serif;
+}
+
+#top {
   display: flex;
 }
 
-.sidebar {
-  width: 220px;
-  background-color: #e0f7fa;
-  height: 100vh;
-  position: fixed;
-  padding: 20px 15px;
+.profile-picture {
+  background-color: rgba(241, 239, 239, 0.847);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-top: 10px;
+  margin-left: 10px;
 }
 
-.sidebar h3 {
-  font-size: 14px;
+#user-data #name {
+  margin-bottom: 5px;
+  margin-left: 15px;
+  margin-top: 10px;
+  font-weight: lighter;
+}
+
+#email {
+  margin-top: 0px;
+  margin-left: 15px;
+}
+
+#app-name {
+  display: flex;
+  justify-content: center;
+  color: #3ab19b;
+  margin-left: 200px;
+}
+
+#width-separator {
+  background-color: #3ab19b;
+  width: 180px;
+  height: 2px;
+  margin-left: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+#navs {
+  display: flex;
+}
+
+ul {
+  list-style: none;
+  margin-left: 3px;
+}
+
+.lii {
   margin-bottom: 30px;
-  color: #00796b;
-}
-
-.sidebar p {
-  margin: 18px 0;
-  display: flex;
-  align-items: center;
   font-weight: bold;
-  color: #00796b;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background 0.2s;
+  font-size: larger;
 }
 
-.sidebar p:hover,
-.sidebar p.active {
-  background-color: #b2dfdb;
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
-.sidebar p i {
-  margin-right: 10px;
-  color: #00796b;
+.icons {
+  color: #3ab19b;
+  margin-right: 15px;
+  margin-left: -30px;
+}
+
+#hight-separator {
+  width: 2px;
+  height: 460px;
+  background-color: #3ab19b;
+  margin-top: 20px;
+  margin-left: 40px;
 }
 
 .main {
   margin-left: 240px;
   padding: 40px;
   flex: 1;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.header h2 {
-  color: #00b386;
-  margin: 0;
 }
 
 .filter {
@@ -130,4 +158,22 @@ body {
 
 .category-entry .actions i:hover {
   color: #00b386;
+}
+
+
+.main-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.main-area {
+  margin-left: 40px;
+  margin-top: 20px;
+}
+
+
+ul li:hover {
+  background-color: #c2e7dc; /* Color change on hover */
+  color: #004d40; /* Text color change on hover */
+  border-radius: 8px;
 }

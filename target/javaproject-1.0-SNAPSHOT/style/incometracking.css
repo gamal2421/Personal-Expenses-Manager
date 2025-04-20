@@ -3,11 +3,6 @@
   font-family: Arial, sans-serif;
 }
 
-body {
-  margin: 0;
-  background-color: #f4f7fa;
-  display: flex;
-}
 
 .sidebar {
   width: 220px;
@@ -125,4 +120,95 @@ canvas {
 
 .add-button:hover {
   background-color: #00796b;
+}
+
+#top {
+  display: flex;
+}
+
+#user-data #name {
+  margin-bottom: 5px;
+  margin-left: 15px;
+  margin-top: 10px;
+  font-weight: lighter;
+}
+
+#email {
+  margin-top: 0px;
+  margin-left: 15px;
+}
+
+.profile-picture {
+  background-color: rgba(241, 239, 239, 0.847);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+#width-separator {
+  background-color: #3ab19b;
+  width: 180px;
+  height: 2px;
+  margin-left: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+#app-name {
+  display: flex;
+  justify-content: center;
+  color: #3ab19b;
+  margin-left: 200px;
+}
+
+ul {
+  list-style: none;
+  margin-left: 3px;
+}
+
+.lii {
+  margin-bottom: 30px;
+  font-weight: bold;
+  font-size: larger;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.icons {
+  color: #3ab19b;
+  margin-right: 15px;
+  margin-left: -30px;
+}
+
+#hight-separator {
+  width: 2px;
+  height: 460px;
+  background-color: #3ab19b;
+  margin-top: 20px;
+  margin-left: 40px;
+}
+
+#navs {
+  display: flex;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.main-area {
+  margin-left: 40px;
+  margin-top: 20px;
+}
+ul li:hover {
+  background-color: #c2e7dc; /* Color change on hover */
+  color: #004d40; /* Text color change on hover */
+  border-radius: 8px;
 }
