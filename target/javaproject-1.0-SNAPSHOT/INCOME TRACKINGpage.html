@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="style/Categories.css" />
+  <link rel="stylesheet" href="style/incometracking.css" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Expenses Manager</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/font/css/octicons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -25,8 +27,6 @@
     </div>
     
     <div id="width-separator"></div>
-
-
     <div class="main-content">
     
     <div id="navs">
@@ -43,53 +43,76 @@
             <li   class="lii"><a href="PEM-DashBoard.html"><i class="fas fa-chart-bar icons"></i> Charts </a></li>
         </ul>
         <div id="hight-separator"></div>
-
+    
+    
+      
+        
     </div>
     
     
     <div class="main-area">
     
-      <div class="filter">
-        <input type="text" placeholder="Filter" />
+
+      <div class="content-box">
+        <canvas id="incomeChart"></canvas>
+  
+        <div class="income-entry">
+          <span>Freelancing: $200</span>
+          <div class="actions">
+            <i class="material-icons">delete</i>
+            <i class="material-icons">edit</i>
+          </div>
+        </div>
+  
+        <div class="income-entry">
+          <span>Teaching: $150</span>
+          <div class="actions">
+            <i class="material-icons">delete</i>
+            <i class="material-icons">edit</i>
+          </div>
+        </div>
+  
+        <div class="income-entry">
+          <span>Exchange: $90</span>
+          <div class="actions">
+            <i class="material-icons">delete</i>
+            <i class="material-icons">edit</i>
+          </div>
+        </div>
+  
         <button class="add-button">+</button>
       </div>
     </div>
 
-    <div class="category">
-      <span>Food</span>
-      <div class="actions">
-        <i class="material-icons">delete</i>
-        <i class="material-icons">edit</i>
-      </div>
-    </div>
 
-    <div class="category">
-      <span>Transportation</span>
-      <div class="actions">
-        <i class="material-icons">delete</i>
-        <i class="material-icons">edit</i>
-      </div>
-    </div>
 
-    <div class="category">
-      <span>Entertainments</span>
-      <div class="actions">
-        <i class="material-icons">delete</i>
-        <i class="material-icons">edit</i>
-      </div>
-    </div>
-
-    <div class="category">
-      <span>Utilities</span>
-      <div class="actions">
-        <i class="material-icons">delete</i>
-        <i class="material-icons">edit</i>
-      </div>
-    </div>
-  </div>
     
     </div>
 
   
+
+  <script>
+    const ctx = document.getElementById('incomeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Freelancing', 'Work', 'Teaching', 'Exchange', 'GSL'],
+        datasets: [{
+          label: 'Income',
+          data: [415, 103, 150, 90, 390],
+          backgroundColor: ['#00a97f', '#33c49f', '#66d9b3', '#99e5cc', '#ccefe5'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>

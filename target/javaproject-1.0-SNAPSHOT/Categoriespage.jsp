@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="style/Categories.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Expenses Manager</title>
+  
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="style/profile.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/font/css/octicons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -26,6 +27,8 @@
     </div>
     
     <div id="width-separator"></div>
+
+
     <div class="main-content">
     
     <div id="navs">
@@ -42,36 +45,53 @@
             <li   class="lii"><a href="PEM-DashBoard.html"><i class="fas fa-chart-bar icons"></i> Charts </a></li>
         </ul>
         <div id="hight-separator"></div>
-    
-    
-      
-        
+
     </div>
     
     
     <div class="main-area">
     
-      <div class="profile-card">
-        <div class="avatar"></div>
-        <p><strong>Your Name</strong></p>
-        <p>ethar.waleed21nmm</p>
-        <input type="text" placeholder="Name" />
-        <input type="email" placeholder="Email Account" />
-        <input type="tel" placeholder="Phone Number" />
-        <button onclick="cancel()">Cancel</button>
+      <div class="filter">
+        <input type="text" placeholder="Filter" />
+        <button class="add-button">+</button>
       </div>
     </div>
 
-    
+    <div class="category">
+      <span>Food</span>
+      <div class="actions">
+        <i class="material-icons">delete</i>
+        <i class="material-icons">edit</i>
+      </div>
+    </div>
 
+    <div class="category">
+      <span>Transportation</span>
+      <div class="actions">
+        <i class="material-icons">delete</i>
+        <i class="material-icons">edit</i>
+      </div>
+    </div>
+
+    <div class="category">
+      <span>Entertainments</span>
+      <div class="actions">
+        <i class="material-icons">delete</i>
+        <i class="material-icons">edit</i>
+      </div>
+    </div>
+
+    <div class="category">
+      <span>Utilities</span>
+      <div class="actions">
+        <i class="material-icons">delete</i>
+        <i class="material-icons">edit</i>
+      </div>
+    </div>
+  </div>
     
     </div>
 
   
-  <script>
-    function cancel() {
-      document.querySelectorAll('.profile-card input').forEach(input => input.value = '');
-    }
-  </script>
 </body>
 </html>

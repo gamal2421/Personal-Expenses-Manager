@@ -1,11 +1,16 @@
+<%@ page import="javawork.personalexp.tools.database.Database" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style/PEM-DashBoard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/font/css/octicons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/font/css/octicons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
    
 </head>
@@ -30,15 +35,15 @@
 <div id="navs">
     
     <ul>
-        <li  class="lii"><a href="profilepage.html"><i class="fas fa-user icons"></i> Profile </a></li>
+        <li  class="lii"><a href="profilepage.jsp"><i class="fas fa-user icons"></i> Profile </a></li>
         <li  class="lii"><a href="Settingspage.html"><i class="fas fa-cog icons"></i> Settings </a></li>
         <li  class="lii"><a href="#"><i class="fas fa-bell icons"></i> Notifications </a></li>
         <li class="lii"><a  href="Categoriespage.html"><i class="fas fa-list icons"></i> Categories </a></li>
         <li  class="lii"><a href="#"> <i class="fas fa-chart-line icons"></i> Financials </a></li>
         <li   class="lii"><a href="REPORTSandANALYTICS.html"><i class="fas fa-file-alt icons"></i> Reports</a></li>
-        <li  class="lii"><a href="Budgets.html"><i class="fas fa-wallet icons"></i> Budget </a></li>
+        <li  class="lii"><a href="Budgets.jsp"><i class="fas fa-wallet icons"></i> Budget </a></li>
         <li  class="lii"><a href="INCOME TRACKINGpage.html"><i class="fas fa-money-bill-wave icons"></i> Income </a></li>
-        <li   class="lii"><a href="PEM-DashBoard.html"><i class="fas fa-chart-bar icons"></i> Charts </a></li>
+        <li   class="lii"><a href="PEM-DashBoard.jsp"><i class="fas fa-chart-bar icons"></i> Charts </a></li>
     </ul>
     <div id="hight-separator"></div>
 

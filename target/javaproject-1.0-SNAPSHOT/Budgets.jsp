@@ -1,3 +1,15 @@
+<%@ page import="javawork.personalexp.tools.database.Database" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+  String userEmail = (String) session.getAttribute("email");
+  if (userEmail == null) {
+      response.sendRedirect("PEM-signin-page.jsp");
+      return;
+  }
+
+  String userName = Database.getUserNameByEmail(userEmail); // You'll need to implement this
+%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,36 +17,28 @@
   <link rel="stylesheet" href="style/budgets.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Expenses Manager</title>
+  
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/font/css/octicons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
 </head>
 <body>
-
   <div id="top">
 <div class="profile-picture"></div>
-
-
 <div id="user-data">
 <h2 id="name">Name</h2>
 <p id="email">ethar.waleed@gmail.com</p>
 </div>
-
-
 <h1 id="app-name">Persnal Expenses Manager</h1>
 </div>
-
 <div id="width-separator"></div>
-
-
 <div class="main-content">
-
 <div id="navs">
-    
     <ul>
-        <li  class="lii"><a href="profilepage.html"><i class="fas fa-user icons"></i> Profile </a></li>
+        <li  class="lii"><a href="profilepage.jsp"><i class="fas fa-user icons"></i> Profile </a></li>
         <li  class="lii"><a href="Settingspage.html"><i class="fas fa-cog icons"></i> Settings </a></li>
         <li  class="lii"><a href="#"><i class="fas fa-bell icons"></i> Notifications </a></li>
         <li class="lii"><a  href="Categoriespage.html"><i class="fas fa-list icons"></i> Categories </a></li>
@@ -45,12 +49,8 @@
         <li   class="lii"><a href="PEM-DashBoard.html"><i class="fas fa-chart-bar icons"></i> Charts </a></li>
     </ul>
     <div id="hight-separator"></div>
-
 </div>
-
-
-<div class="main-area">
-   
+<div class="main-area"> 
   <div class="filter">
     <select>
       <option value="">Filter</option>
@@ -58,7 +58,6 @@
     <button class="add-button">+</button>
   </div>
 </div>
-
 <div class="content-box">
   <div class="category-entry">
     <span>Food</span>
@@ -67,7 +66,6 @@
       <i class="material-icons">edit</i>
     </div>
   </div>
-
   <div class="category-entry">
     <span>Transportation</span>
     <div class="actions">
@@ -75,7 +73,6 @@
       <i class="material-icons">edit</i>
     </div>
   </div>
-
   <div class="category-entry">
     <span>Entertainments</span>
     <div class="actions">

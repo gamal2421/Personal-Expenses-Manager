@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Expenses Manager - Categories</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    /* Background Gradient */
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #f4f9f4, #e0f7fa);
+    }
+
+    /* Main Container */
+    .main-page {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Sidebar Styling */
+    #sidebar {
+      background-color: rgb(246, 247, 244);
+      border-radius: 16px;
+      width: 250px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Profile Section */
+    #profile-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      margin-bottom: 30px;
+    }
+
+    /* Profile Image */
+    .profile-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid #1abc9c;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .profile-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Navigation */
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .nav-item {
+      margin-bottom: 15px;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      border-radius: 12px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .nav-item a:hover {
+      background-color: #3ab19b;
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .nav-item a:hover .icons {
+      color: white;
+    }
+
+    .icons {
+      color: #3ab19b;
+      font-size: 1.1em;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* Main Content Area */
+    .content-area {
+      flex-grow: 1;
+      margin-left: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border-radius: 16px;
+      padding: 15px 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .page-title h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 15px;
+    }
+
+    .notification-btn, .settings-btn {
+      background: white;
+      color: #3ab19b;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(58, 177, 155, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .notification-btn:hover, .settings-btn:hover {
+      transform: scale(1.1);
+      color: #1abc9c;
+    }
+
+    /* Categories Content */
+    .categories-content {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      flex-grow: 1;
+    }
+
+    /* Filter and Add Section */
+    .filter-add-section {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .filter-input {
+      flex: 1;
+      padding: 12px 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 30px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: #1abc9c;
+      box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.2);
+    }
+
+    .add-btn {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background-color: #1abc9c;
+      color: white;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .add-btn:hover {
+      background-color: #16a085;
+      transform: scale(1.1);
+    }
+
+    /* Categories Grid */
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .category-card {
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(58, 177, 155, 0.15);
+    }
+
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .category-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .edit-btn {
+      color: #3498db;
+    }
+
+    .delete-btn {
+      color: #e74c3c;
+    }
+
+    .category-stats {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .stat-label {
+      color: #777;
+    }
+
+    .stat-value {
+      font-weight: 500;
+    }
+
+    /* Overlay and Popups */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      display: none;
+      z-index: 100;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+      width: 320px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 101;
+      display: none;
+    }
+
+    .profile-popup {
+      text-align: center;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #3ab19b;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 30px;
+    }
+
+    .info-field {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .info-field label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      margin: 0;
+      padding: 8px 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .main-page {
+        flex-direction: column;
+      }
+
+      #sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .content-area {
+        margin-left: 0;
+      }
+
+      .categories-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-add-section {
+        flex-direction: column;
+      }
+
+      .add-btn {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="main-page">
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <div id="profile-section">
+            <div class="profile-image">
+                <img src="https://via.placeholder.com/100" alt="Profile">
+            </div>
+            <h3>Mohab Mohamed</h3>
+            <p>Financial Analyst</p>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="dashboard.html"><i class="icons fas fa-chart-pie"></i> Charts</a></li>
+            <li class="nav-item"><a href="#"><i class="icons fas fa-wallet"></i> Financials</a></li>
+            <li class="nav-item"><a href="REPORTSandANALYTICS.html"><i class="icons fas fa-file-alt"></i> Reports</a></li>
+            <li class="nav-item"><a href="#"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
+            <li class="nav-item"><a href="#"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
+            <li class="nav-item"><a href="#"><i class="icons fas fa-tags"></i> Categories</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>Categories</h1>
+            </div>
+            <div class="top-actions">
+                <div class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="settings-btn">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Content -->
+        <div class="categories-content">
+            <div class="filter-add-section">
+                <input type="text" class="filter-input" placeholder="Filter categories...">
+                <button class="add-btn" id="addCategoryBtn">+</button>
+            </div>
+
+            <div class="categories-grid" id="categoriesGrid">
+                <!-- Sample Categories -->
+                <div class="category-card">
+                    <div class="category-header">
+                        <span class="category-name">Groceries</span>
+                        <div class="category-actions">
+                            <button class="action-btn edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Monthly Budget:</span>
+                            <span class="stat-value">$500</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Spent This Month:</span>
+                            <span class="stat-value">$320</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Remaining:</span>
+                            <span class="stat-value">$180</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-header">
+                        <span class="category-name">Utilities</span>
+                        <div class="category-actions">
+                            <button class="action-btn edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Monthly Budget:</span>
+                            <span class="stat-value">$300</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Spent This Month:</span>
+                            <span class="stat-value">$250</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Remaining:</span>
+                            <span class="stat-value">$50</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-header">
+                        <span class="category-name">Entertainment</span>
+                        <div class="category-actions">
+                            <button class="action-btn edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Monthly Budget:</span>
+                            <span class="stat-value">$200</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Spent This Month:</span>
+                            <span class="stat-value">$180</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Remaining:</span>
+                            <span class="stat-value">$20</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div class="overlay" id="settingsOverlay"></div>
+
+    <!-- Settings Card -->
+    <div class="card" id="settingsCard">
+        <div class="card-item"><span class="material-icons">palette</span> Theme</div>
+        <div class="card-item"><span class="material-icons">lock</span> Privacy</div>
+        <div class="card-item"><span class="material-icons">notifications_active</span> Enable Notification</div>
+    </div>
+
+    <!-- Profile Overlay -->
+    <div class="overlay" id="profileOverlay"></div>
+
+    <!-- Profile Popup Card -->
+    <div class="card profile-popup" id="profileCard">
+        <div class="avatar">M</div>
+        <div class="profile-info">
+            <p><strong>Mohab Mohamed</strong></p>
+            <p>mohab123@gmail.com</p>
+        </div>
+        <div class="info-field">
+            <label>Name</label>
+            <p class="info-value">Mohab Mohamed</p>
+        </div>
+        <div class="info-field">
+            <label>Email Account</label>
+            <p class="info-value">mohab123@gmail.com</p>
+        </div>
+        <div class="info-field">
+            <label>Phone Number</label>
+            <p class="info-value">+1234567890</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addBtn = document.getElementById('addCategoryBtn');
+        const categoriesGrid = document.getElementById('categoriesGrid');
+        const filterInput = document.querySelector('.filter-input');
+
+        // Profile click event
+        document.getElementById('profile-section').addEventListener('click', function() {
+            document.getElementById('profileOverlay').style.display = 'block';
+            document.getElementById('profileCard').style.display = 'block';
+        });
+
+        // Close popups when clicking overlay
+        document.getElementById('profileOverlay').addEventListener('click', function() {
+            this.style.display = 'none';
+            document.getElementById('profileCard').style.display = 'none';
+        });
+
+        document.getElementById('settingsOverlay').addEventListener('click', function() {
+            this.style.display = 'none';
+            document.getElementById('settingsCard').style.display = 'none';
+        });
+
+        // Settings button click
+        document.querySelector('.settings-btn').addEventListener('click', function() {
+            document.getElementById('settingsOverlay').style.display = 'block';
+            document.getElementById('settingsCard').style.display = 'block';
+        });
+
+        // Add new category
+        addBtn.addEventListener('click', function() {
+            const categoryName = prompt('Enter new category name:');
+            if (categoryName && categoryName.trim()) {
+                const newCategory = document.createElement('div');
+                newCategory.className = 'category-card';
+                newCategory.innerHTML = `
+                    <div class="category-header">
+                        <span class="category-name">${categoryName.trim()}</span>
+                        <div class="category-actions">
+                            <button class="action-btn edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Monthly Budget:</span>
+                            <span class="stat-value">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Spent This Month:</span>
+                            <span class="stat-value">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Remaining:</span>
+                            <span class="stat-value">$0</span>
+                        </div>
+                    </div>
+                `;
+                categoriesGrid.appendChild(newCategory);
+                attachEventListeners(newCategory);
+            }
+        });
+
+        // Filter categories
+        filterInput.addEventListener('input', function() {
+            const filterValue = this.value.toLowerCase();
+            document.querySelectorAll('.category-card').forEach(card => {
+                const name = card.querySelector('.category-name').textContent.toLowerCase();
+                card.style.display = name.includes(filterValue) ? 'flex' : 'none';
+            });
+        });
+
+        // Attach event listeners to all category cards
+        document.querySelectorAll('.category-card').forEach(card => {
+            attachEventListeners(card);
+        });
+
+        function attachEventListeners(card) {
+            const editBtn = card.querySelector('.edit-btn');
+            const deleteBtn = card.querySelector('.delete-btn');
+            const nameElement = card.querySelector('.category-name');
+
+            editBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const currentName = nameElement.textContent;
+                const newName = prompt('Edit category name:', currentName);
+                if (newName && newName.trim()) {
+                    nameElement.textContent = newName.trim();
+                }
+            });
+
+            deleteBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to delete this category?')) {
+                    card.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => card.remove(), 300);
+                }
+            });
+        }
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    });
+</script>
+</body>
+</html>

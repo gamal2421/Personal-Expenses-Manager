@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="task_2_project.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Expenses Manager</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+  <div class="sidebar">
+    <h3>Name<br /><small style="font-weight: normal; font-size: 12px;">Mohab123@gmail.com</small></h3>
+    <p><i class="material-icons">person</i>Profile</p>
+    <p><i class="material-icons">settings</i>Settings</p>
+    <p><i class="material-icons">notifications</i>Notifications</p>
+    <p><i class="material-icons">category</i>Categories</p>
+    <p><i class="material-icons">account_balance</i>Financials</p>
+    <p><i class="material-icons">description</i>Reports</p>
+    <p><i class="material-icons">account_balance_wallet</i>Budget</p>
+    <p><i class="material-icons">attach_money</i>Income</p>
+    <p><i class="material-icons">bar_chart</i>charts</p>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h2>Persnal Expenses Manager</h2>
+    </div>
+
+    <div class="content-box">
+      <canvas id="incomeChart"></canvas>
+
+      <div class="income-entry">
+        <span>free lancing : 200$</span>
+        <div class="actions">
+          <i class="material-icons">delete</i>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+      <div class="income-entry">
+        <span>free lancing : 200$</span>
+        <div class="actions">
+          <i class="material-icons">delete</i>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+      <div class="income-entry">
+        <span>free lancing : 200$</span>
+        <div class="actions">
+          <i class="material-icons">delete</i>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+
+      <button class="add-button">+</button>
+    </div>
+  </div>
+  <script>
+    let chart;
+    let incomeData = [
+      { label: 'freelancing', amount: 415 },
+      { label: 'work', amount: 103 },
+      { label: 'teaching', amount: 12 },
+      { label: 'exchange', amount: 27 },
+      { label: 'gsl', amount: 390 }
+    ];
+  
+    const colors = ['#00a97f', '#33c49f', '#66d9b3', '#99e5cc', '#ccefe5'];
+  
+    function renderChart() {
+      if (chart) chart.destroy();
+      const ctx = document.getElementById('incomeChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: incomeData.map(item => item.label),
+          datasets: [{
+            label: 'Income',
+            data: incomeData.map(item => item.amount),
+            backgroundColor: colors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'right' }
+          }
+        }
+      });
+    }
+  
+    function renderIncomeEntries() {
+      const contentBox = document.querySelector('.content-box');
+      const oldEntries = document.querySelectorAll('.income-entry');
+      oldEntries.forEach(entry => entry.remove());
+  
+      incomeData.forEach((item, index) => {
+        const entry = document.createElement('div');
+        entry.className = 'income-entry';
+  
+        const span = document.createElement('span');
+        span.textContent = `${item.label} : ${item.amount}$`;
+  
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+  
+        const deleteIcon = document.createElement('i');
+        deleteIcon.className = 'material-icons';
+        deleteIcon.textContent = 'delete';
+        deleteIcon.onclick = () => {
+          incomeData.splice(index, 1);
+          renderIncomeEntries();
+          renderChart();
+        };
+  
+        const editIcon = document.createElement('i');
+        editIcon.className = 'material-icons';
+        editIcon.textContent = 'edit';
+        editIcon.onclick = () => {
+          const newLabel = prompt("Edit label:", item.label);
+          const newAmount = parseFloat(prompt("Edit amount:", item.amount));
+          if (newLabel && !isNaN(newAmount)) {
+            incomeData[index] = { label: newLabel, amount: newAmount };
+            renderIncomeEntries();
+            renderChart();
+          }
+        };
+  
+        actions.appendChild(deleteIcon);
+        actions.appendChild(editIcon);
+        entry.appendChild(span);
+        entry.appendChild(actions);
+        contentBox.insertBefore(entry, document.querySelector('.add-button'));
+      });
+    }
+  
+    document.querySelector('.add-button').addEventListener('click', () => {
+      const label = prompt("Enter income label:");
+      const amount = parseFloat(prompt("Enter income amount:"));
+      if (label && !isNaN(amount)) {
+        incomeData.push({ label, amount });
+        renderIncomeEntries();
+        renderChart();
+      }
+    });
+  
+    renderIncomeEntries();
+    renderChart();
+  </script>
+  
+</body>
+</html>

@@ -1,1 +1,11 @@
 javawork\personalexp\tools\database\Database.class
+javawork\personalexp\models\DeviceSync.class
+javawork\personalexp\models\IncomeSource.class
+javawork\personalexp\models\RecurringPayment.class
+javawork\personalexp\models\Budget.class
+javawork\personalexp\models\User.class
+javawork\personalexp\servlets\UpdateProfileServlet.class
+javawork\personalexp\models\Category.class
+javawork\personalexp\models\Report.class
+javawork\personalexp\models\SavingsGoal.class
+javawork\personalexp\models\Notification.class
