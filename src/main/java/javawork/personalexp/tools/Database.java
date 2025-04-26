@@ -10,6 +10,7 @@ import javawork.personalexp.models.Budget;
 import javawork.personalexp.models.Category;
 import javawork.personalexp.models.DashboardData;
 import javawork.personalexp.models.Income;
+import javawork.personalexp.models.SavingGoal;
 import javawork.personalexp.models.User;
 
 public class Database {
@@ -331,35 +332,49 @@ public class Database {
     }
 
 
-    // Budget-related methods in Database class
-    public static boolean addBudget(int userId, String category, double budgetAmount, double currentSpending) {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                 "INSERT INTO budgets (user_id, category, budget_amount, current_spending) VALUES (?, ?, ?, ?)")) {
-            
-            stmt.setInt(1, userId);
-            stmt.setString(2, category);
-            stmt.setDouble(3, budgetAmount);
-            stmt.setDouble(4, currentSpending);
-            
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-public static boolean updateBudget(int id, String category, double budgetAmount) {
+
+
+
+
+
+
+
+
+
+
+
+
+// Budget-related methods in Database class
+public static boolean addBudget(int userId, String category, double budgetAmount, double currentSpending) {
     try (Connection conn = getConnection();
          PreparedStatement stmt = conn.prepareStatement(
-             "UPDATE budgets SET category = ?, budget_amount = ? WHERE id = ?")) {
+             "INSERT INTO budgets (user_id, category, budget_amount, current_spending) VALUES (?, ?, ?, ?)")) {
         
-        stmt.setString(1, category);
-        stmt.setDouble(2, budgetAmount);
-        stmt.setInt(3, id);
+        stmt.setInt(1, userId);
+        stmt.setString(2, category);
+        stmt.setDouble(3, budgetAmount);
+        stmt.setDouble(4, currentSpending);
         
         return stmt.executeUpdate() > 0;
     } catch (SQLException e) {
-        e.printStackTrace();
+        logger.log(Level.SEVERE, "Error adding budget for user: " + userId, e);
+        return false;
+    }
+}
+
+public static boolean updateBudget(int id, String category, double budgetAmount, double currentSpending) {
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(
+             "UPDATE budgets SET category = ?, budget_amount = ?, current_spending = ? WHERE id = ?")) {
+        
+        stmt.setString(1, category);
+        stmt.setDouble(2, budgetAmount);
+        stmt.setDouble(3, currentSpending);
+        stmt.setInt(4, id);
+        
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error updating budget ID: " + id, e);
         return false;
     }
 }
@@ -372,7 +387,7 @@ public static boolean deleteBudget(int id) {
         stmt.setInt(1, id);
         return stmt.executeUpdate() > 0;
     } catch (SQLException e) {
-        e.printStackTrace();
+        logger.log(Level.SEVERE, "Error deleting budget ID: " + id, e);
         return false;
     }
 }
@@ -390,16 +405,99 @@ public static List<Budget> getBudgets(int userId) {
             budgets.add(new Budget(
                 rs.getInt("id"),
                 rs.getString("category"),
-                rs.getDouble("budget_amount"),
+                rs.getDouble("budget_amount"),  // Fixed typo from "budget_amount" to match your table
                 rs.getDouble("current_spending")
             ));
         }
     } catch (SQLException e) {
-        e.printStackTrace();
+        logger.log(Level.SEVERE, "Error fetching budgets for user: " + userId, e);
     }
     return budgets;
 }
 
+// Add this to your Database class
+public static boolean addSavingGoal(int userId, String title, String description, 
+                                  double targetAmount, Date targetDate, double currentAmount) {
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(
+             "INSERT INTO savings_goals (user_id, title, description, target_amount, " +
+             "target_date, current_amount) VALUES (?, ?, ?, ?, ?, ?)")) {
+        
+        stmt.setInt(1, userId);
+        stmt.setString(2, title);
+        stmt.setString(3, description);
+        stmt.setDouble(4, targetAmount);
+        stmt.setDate(5, targetDate);
+        stmt.setDouble(6, currentAmount);
+        
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error adding saving goal", e);
+        return false;
+    }
+}
+
+public static boolean updateSavingGoal(int id, String title, String description, 
+                                     double targetAmount, Date targetDate, double currentAmount) {
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(
+             "UPDATE savings_goals SET title = ?, description = ?, target_amount = ?, " +
+             "target_date = ?, current_amount = ? WHERE id = ?")) {
+        
+        stmt.setString(1, title);
+        stmt.setString(2, description);
+        stmt.setDouble(3, targetAmount);
+        stmt.setDate(4, targetDate);
+        stmt.setDouble(5, currentAmount);
+        stmt.setInt(6, id);
+        
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error updating saving goal", e);
+        return false;
+    }
+}
+
+public static List<SavingGoal> getSavingGoals(int userId) {
+    List<SavingGoal> goals = new ArrayList<>();
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(
+             "SELECT id, title, description, target_amount, target_date, " +
+             "current_amount, achieved FROM savings_goals WHERE user_id = ?")) {
+        
+        stmt.setInt(1, userId);
+        ResultSet rs = stmt.executeQuery();
+        
+        while (rs.next()) {
+            goals.add(new SavingGoal(
+                rs.getInt("id"),
+                rs.getString("title"),
+                rs.getString("description"),
+                rs.getDouble("target_amount"),
+                rs.getDouble("current_amount"),
+                rs.getDate("target_date"),
+                rs.getBoolean("achieved")
+            ));
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error fetching saving goals", e);
+    }
+    return goals;
+}
+
+// Add this method to your Database class
+public static boolean deleteSavingGoal(int id) {
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(
+             "DELETE FROM savings_goals WHERE id = ?")) {
+        
+        stmt.setInt(1, id);
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error deleting saving goal ID: " + id, e);
+        return false;
+    }
+}
     // Utility methods
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {

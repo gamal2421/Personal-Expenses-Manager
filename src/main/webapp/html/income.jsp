@@ -76,11 +76,12 @@
             <p><%= user.getEmail() %></p>
         </div>
 
+
         <ul class="nav-menu">
             <li class="nav-item"><a href="dashboard.jsp"><i class="icons fas fa-chart-pie"></i> Charts</a></li>
-            <li class="nav-item"><a href="#"><i class="icons fas fa-wallet"></i> Financials</a></li>
+            <li class="nav-item"><a href="Financials goals.jsp"><i class="icons fas fa-wallet"></i> Financials</a></li>
             <li class="nav-item"><a href="reports.jsp"><i class="icons fas fa-file-alt"></i> Reports</a></li>
-            <li class="nav-item"><a href="#"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
+            <li class="nav-item"><a href="budget.jsp"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
             <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
             <li class="nav-item"><a href="categories.jsp"><i class="icons fas fa-tags"></i> Categories</a></li>
         </ul>

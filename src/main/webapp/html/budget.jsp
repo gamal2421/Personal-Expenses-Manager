@@ -85,7 +85,7 @@
 
         <ul class="nav-menu">
             <li class="nav-item"><a href="dashboard.jsp"><i class="icons fas fa-chart-pie"></i> Charts</a></li>
-            <li class="nav-item"><a href="#"><i class="icons fas fa-wallet"></i> Financials</a></li>
+            <li class="nav-item"><a href="Financials goals.jsp"><i class="icons fas fa-wallet"></i> Financials</a></li>
             <li class="nav-item"><a href="reports.jsp"><i class="icons fas fa-file-alt"></i> Reports</a></li>
             <li class="nav-item"><a href="budget.jsp"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
             <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
@@ -167,54 +167,8 @@
         </div>
     </div>
 </div>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add new budget
-        document.getElementById('addBudgetBtn').addEventListener('click', function() {
-            const category = prompt('Enter budget category:');
-            if (category && category.trim()) {
-                const budgetAmount = parseFloat(prompt('Enter budget amount:'));
-                if (!isNaN(budgetAmount)) {
-                    const currentSpending = parseFloat(prompt('Enter current spending:') || 0;
-                    
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'budget.jsp';
-                    
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'add';
-                    form.appendChild(actionInput);
-                    
-                    const categoryInput = document.createElement('input');
-                    categoryInput.type = 'hidden';
-                    categoryInput.name = 'category';
-                    categoryInput.value = category;
-                    form.appendChild(categoryInput);
-                    
-                    const amountInput = document.createElement('input');
-                    amountInput.type = 'hidden';
-                    amountInput.name = 'budgetAmount';
-                    amountInput.value = budgetAmount;
-                    form.appendChild(amountInput);
-                    
-                    const spendingInput = document.createElement('input');
-                    spendingInput.type = 'hidden';
-                    spendingInput.name = 'currentSpending';
-                    spendingInput.value = currentSpending;
-                    form.appendChild(spendingInput);
-                    
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    alert('Please enter a valid amount');
-                }
-            }
-        });
-    });
-
+    // Define functions first before they're used
     function editBudget(id, currentCategory, currentBudgetAmount, currentSpending) {
         const newCategory = prompt('Edit budget category:', currentCategory);
         if (newCategory && newCategory.trim()) {
@@ -286,6 +240,52 @@
             form.submit();
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add new budget
+        document.getElementById('addBudgetBtn').addEventListener('click', function() {
+            const category = prompt('Enter budget category:');
+            if (category && category.trim()) {
+                const budgetAmount = parseFloat(prompt('Enter budget amount:'));
+                if (!isNaN(budgetAmount)) {
+                    const currentSpending = parseFloat(prompt('Enter current spending:') || 0);
+                    
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'budget.jsp';
+                    
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'add';
+                    form.appendChild(actionInput);
+                    
+                    const categoryInput = document.createElement('input');
+                    categoryInput.type = 'hidden';
+                    categoryInput.name = 'category';
+                    categoryInput.value = category;
+                    form.appendChild(categoryInput);
+                    
+                    const amountInput = document.createElement('input');
+                    amountInput.type = 'hidden';
+                    amountInput.name = 'budgetAmount';
+                    amountInput.value = budgetAmount;
+                    form.appendChild(amountInput);
+                    
+                    const spendingInput = document.createElement('input');
+                    spendingInput.type = 'hidden';
+                    spendingInput.name = 'currentSpending';
+                    spendingInput.value = currentSpending;
+                    form.appendChild(spendingInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                } else {
+                    alert('Please enter a valid amount');
+                }
+            }
+        });
+    });
 </script>
 </body>
 </html>
