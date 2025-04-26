@@ -51,6 +51,12 @@
             <version>2.0.0</version>
         </dependency>
 
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-text</artifactId>
+    <version>1.10.0</version> <!-- Use latest version -->
+</dependency>
+
         <dependency>
             <groupId>org.glassfish.web</groupId>
             <artifactId>jakarta.servlet.jsp.jstl</artifactId>

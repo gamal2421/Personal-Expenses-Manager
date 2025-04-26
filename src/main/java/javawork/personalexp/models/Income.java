@@ -2,28 +2,17 @@ package javawork.personalexp.models;
 
 public class Income {
     private int id;
-    private String sourceName;
     private double amount;
-    private int userId;
-
-    public Income(int id, String sourceName, double amount, int userId) {
+    private String source;
+    
+    public Income(int id, double amount, String source) {
         this.id = id;
-        this.sourceName = sourceName;
         this.amount = amount;
-        this.userId = userId;
+        this.source = source;
     }
-
-    public Income(int userId, String sourceName, double amount) {
-        this.userId = userId;
-        this.sourceName = sourceName;
-        this.amount = amount;
-    }
+    
     // Getters
     public int getId() { return id; }
-    public String getSourceName() { return sourceName; }
     public double getAmount() { return amount; }
-    public int getUserId() { return userId; }
-
-    // Setters (if needed)
-    public void setId(int id) { this.id = id; }
+    public String getSource() { return source; }
 }
