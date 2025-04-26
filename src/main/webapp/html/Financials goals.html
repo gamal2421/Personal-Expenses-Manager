@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Expenses Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/Financials goals.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div id="profile-section">
+                <div class="profile-image">
+                    <img src="https://via.placeholder.com/100" alt="Profile">
+                </div>
+                <h3>Mohab Mohamed</h3>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="dashboard.html"><i class="icons fas fa-chart-pie"></i> Charts</a></li>
+                <li class="nav-item"><a href="Financials goals.html"><i class="icons fas fa-wallet"></i> Financials</a></li>
+                <li class="nav-item"><a href="reports.html"><i class="icons fas fa-file-alt"></i> Reports</a></li>
+                <li class="nav-item"><a href="budget.html"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
+                <li class="nav-item"><a href="income.html"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
+                <li class="nav-item"><a href="categories.html"><i class="icons fas fa-tags"></i> Categories</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <header>
+                <h1>Personal Expenses Manager</h1>
+                <button class="new-btn" id="addNewGoalBtn">
+                    <span class="plus-icon">+</span>
+                    <span>NEW</span>
+                </button>
+            </header>
+
+            <section class="saving-overview">
+                <h2>Saving Overview</h2>
+                <div class="overview-card">
+                    <div class="total-saved">
+                        <h3>Total Saved</h3>
+                        <p class="amount" id="totalSavedAmount">$0</p>
+                    </div>
+                    <div class="monthly-goal">
+                        <p>Monthly Saving Goal</p>
+                        <meter value="0" min="0" max="1" id="monthlyGoalMeter"></meter>
+                        <span class="percentage" id="monthlyGoalPercentage">0%</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="saving-goals">
+                <h2>Saving Goals</h2>
+                <div class="goals-container" id="goalsContainer">
+                    <!-- Goal cards will be added here dynamically -->
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-piggy-bank"></i>
+                        <h3>No Saving Goals Yet</h3>
+                        <p>Start by creating your first financial goal</p>
+                        <button class="new-btn" id="addFirstGoalBtn">
+                            <span class="plus-icon">+</span>
+                            <span>CREATE GOAL</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- New Goal Modal -->
+    <div class="modal-overlay" id="goalModal">
+        <div class="new-goal-container">
+            <button class="back-btn" id="closeModalBtn">←</button>
+            <h1 class="title" id="modalTitle">NEW FINANCIAL GOAL</h1>
+            <form id="new-goal-form">
+                <input type="hidden" id="goalId">
+                
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <input type="text" id="goal-title" placeholder=" " required>
+                        <span class="label">Goal Title</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <textarea id="goal-description" placeholder=" "></textarea>
+                        <span class="label">Description (optional)</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="current-amount-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <div class="input-wrapper">
+                            <input type="number" id="current-amount" placeholder=" " value="0" min="0" step="0.01">
+                            <span class="label">Current Amount</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="current-amount-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <div class="input-wrapper">
+                            <input type="number" id="target-amount" placeholder=" " required min="0.01" step="0.01">
+                            <span class="label">Target Amount</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <input type="date" id="target-date" required>
+                        <span class="label">Target Date</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="save-btn" id="saveGoalBtn">SAVE</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Goal saved successfully!</span>
+    </div>
+
+    <script>
+        // DOM Elements
+        const goalModal = document.getElementById('goalModal');
+        const addNewGoalBtn = document.getElementById('addNewGoalBtn');
+        const addFirstGoalBtn = document.getElementById('addFirstGoalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const newGoalForm = document.getElementById('new-goal-form');
+        const goalsContainer = document.getElementById('goalsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const totalSavedAmount = document.getElementById('totalSavedAmount');
+        const monthlyGoalMeter = document.getElementById('monthlyGoalMeter');
+        const monthlyGoalPercentage = document.getElementById('monthlyGoalPercentage');
+        const modalTitle = document.getElementById('modalTitle');
+        
+        // Form fields
+        const goalIdField = document.getElementById('goalId');
+        const goalTitleField = document.getElementById('goal-title');
+        const goalDescriptionField = document.getElementById('goal-description');
+        const currentAmountField = document.getElementById('current-amount');
+        const targetAmountField = document.getElementById('target-amount');
+        const targetDateField = document.getElementById('target-date');
+        
+        // Sample data (in a real app, this would come from a database)
+        let goals = [];
+        let nextId = 1;
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load any saved goals from localStorage
+            loadGoals();
+            
+            // Update the overview
+            updateOverview();
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            targetDateField.min = today;
+        });
+        
+        // Event Listeners
+        addNewGoalBtn.addEventListener('click', openNewGoalModal);
+        addFirstGoalBtn && addFirstGoalBtn.addEventListener('click', openNewGoalModal);
+        closeModalBtn.addEventListener('click', closeGoalModal);
+        newGoalForm.addEventListener('submit', saveGoal);
+        
+        // Goal Modal functions
+        function openNewGoalModal() {
+            // Reset form
+            newGoalForm.reset();
+            goalIdField.value = '';
+            modalTitle.textContent = 'NEW FINANCIAL GOAL';
+            
+            // Set default current amount to 0
+            currentAmountField.value = '0';
+            
+            // Open modal
+            goalModal.classList.add('active');
+            
+            // Focus on title field
+            setTimeout(() => {
+                goalTitleField.focus();
+            }, 300);
+        }
+        
+        function openEditGoalModal(goal) {
+            // Fill form with goal data
+            goalIdField.value = goal.id;
+            goalTitleField.value = goal.title;
+            goalDescriptionField.value = goal.description || '';
+            currentAmountField.value = goal.currentAmount;
+            targetAmountField.value = goal.targetAmount;
+            targetDateField.value = goal.targetDate;
+            
+            // Update modal title
+            modalTitle.textContent = 'EDIT GOAL';
+            
+            // Open modal
+            goalModal.classList.add('active');
+        }
+        
+        function closeGoalModal() {
+            goalModal.classList.remove('active');
+        }
+        
+        // Goal CRUD functions
+        function saveGoal(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const id = goalIdField.value || nextId++;
+            const title = goalTitleField.value.trim();
+            const description = goalDescriptionField.value.trim();
+            const currentAmount = parseFloat(currentAmountField.value) || 0;
+            const targetAmount = parseFloat(targetAmountField.value);
+            const targetDate = targetDateField.value;
+            
+            // Validate
+            if (!title || isNaN(targetAmount) || targetAmount <= 0 || !targetDate) {
+                showToast('Please fill all required fields correctly', true);
+                return;
+            }
+            
+            if (currentAmount > targetAmount) {
+                showToast('Current amount cannot exceed target amount', true);
+                return;
+            }
+            
+            // Create or update goal
+            const existingIndex = goals.findIndex(g => g.id == id);
+            const goal = {
+                id,
+                title,
+                description,
+                currentAmount,
+                targetAmount,
+                targetDate,
+                createdAt: existingIndex >= 0 ? goals[existingIndex].createdAt : new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                goals[existingIndex] = goal;
+            } else {
+                goals.push(goal);
+            }
+            
+            // Save to localStorage
+            saveGoals();
+            
+            // Update UI
+            renderGoals();
+            updateOverview();
+            
+            // Close modal and show success message
+            closeGoalModal();
+            showToast(`Goal "${title}" ${existingIndex >= 0 ? 'updated' : 'created'} successfully!`);
+        }
+        
+        function deleteGoal(id) {
+            if (confirm('Are you sure you want to delete this goal?')) {
+                goals = goals.filter(goal => goal.id != id);
+                saveGoals();
+                renderGoals();
+                updateOverview();
+                showToast('Goal deleted successfully');
+            }
+        }
+        
+        // UI Rendering functions
+        function renderGoals() {
+            if (goals.length === 0) {
+                goalsContainer.innerHTML = `
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-piggy-bank"></i>
+                        <h3>No Saving Goals Yet</h3>
+                        <p>Start by creating your first financial goal</p>
+                        <button class="new-btn" id="addFirstGoalBtn">
+                            <span class="plus-icon">+</span>
+                            <span>CREATE GOAL</span>
+                        </button>
+                    </div>
+                `;
+                document.getElementById('addFirstGoalBtn').addEventListener('click', openNewGoalModal);
+                return;
+            }
+            
+            // Sort goals by completion status and then by date
+            goals.sort((a, b) => {
+                const aProgress = a.currentAmount / a.targetAmount;
+                const bProgress = b.currentAmount / b.targetAmount;
+                
+                // Completed goals go to the bottom
+                if (aProgress >= 1 && bProgress < 1) return 1;
+                if (aProgress < 1 && bProgress >= 1) return -1;
+                
+                // Then sort by progress (ascending)
+                return aProgress - bProgress;
+            });
+            
+            goalsContainer.innerHTML = goals.map(goal => {
+                const progress = Math.min(goal.currentAmount / goal.targetAmount, 1);
+                const remaining = goal.targetAmount - goal.currentAmount;
+                const progressPercent = Math.round(progress * 100);
+                
+                return `
+                    <div class="goal-card" data-id="${goal.id}">
+                        <div class="goal-actions">
+                            <button class="action-btn edit-btn" title="Edit goal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="Delete goal">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="goal-header">
+                            <h3 class="goal-title">${goal.title}</h3>
+                            <div class="goal-amount">$${formatNumber(goal.currentAmount)} / $${formatNumber(goal.targetAmount)}</div>
+                        </div>
+                        ${goal.description ? `<p style="margin-bottom: 15px; color: #666; font-size: 14px;">${goal.description}</p>` : ''}
+                        <div class="goal-progress">
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: ${progressPercent}%"></div>
+                            </div>
+                            <div class="goal-details">
+                                <span>$${formatNumber(remaining)} remaining</span>
+                                <span>${progressPercent}% saved</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const goalId = this.closest('.goal-card').dataset.id;
+                    const goal = goals.find(g => g.id == goalId);
+                    if (goal) openEditGoalModal(goal);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const goalId = this.closest('.goal-card').dataset.id;
+                    deleteGoal(goalId);
+                });
+            });
+        }
+        
+        function updateOverview() {
+            // Calculate total saved
+            const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+            totalSavedAmount.textContent = `$${formatNumber(totalSaved)}`;
+            
+            // Calculate monthly progress (simplified for demo)
+            const monthlyGoal = 2000; // Example monthly goal
+            const monthlyProgress = Math.min(totalSaved / monthlyGoal, 1);
+            
+            monthlyGoalMeter.value = monthlyProgress;
+            monthlyGoalPercentage.textContent = `${Math.round(monthlyProgress * 100)}%`;
+        }
+        
+        // Helper functions
+        function formatNumber(num) {
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        function showToast(message, isError = false) {
+            toastMessage.textContent = message;
+            toast.classList.toggle('error', isError);
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // LocalStorage functions
+        function saveGoals() {
+            localStorage.setItem('savingGoals', JSON.stringify(goals));
+            localStorage.setItem('nextGoalId', nextId.toString());
+        }
+        
+        function loadGoals() {
+            const savedGoals = localStorage.getItem('savingGoals');
+            const savedNextId = localStorage.getItem('nextGoalId');
+            
+            if (savedGoals) {
+                goals = JSON.parse(savedGoals);
+            }
+            
+            if (savedNextId) {
+                nextId = parseInt(savedNextId);
+            }
+            
+            renderGoals();
+        }
+        
+        // Close modal when clicking outside
+        goalModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGoalModal();
+            }
+        });
+    </script>
+</body>
+</html>

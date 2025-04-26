@@ -1,5 +1,5 @@
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="3.1">
     <welcome-file-list>
-        <welcome-file>PEM-signin-page.jsp</welcome-file>
+        <welcome-file>login.jsp</welcome-file>
     </welcome-file-list>
 </web-app>

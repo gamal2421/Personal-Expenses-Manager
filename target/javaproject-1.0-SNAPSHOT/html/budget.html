@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Expenses Manager - Budgets</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="../css/budget.css"> 
+</head>
+<body>
+<div class="main-page">
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <div id="profile-section">
+            <div class="profile-image">
+                <img src="https://via.placeholder.com/100" alt="Profile">
+            </div>
+            <h3>Mohab Mohamed</h3>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="dashboard.html"><i class="icons fas fa-chart-pie"></i> Charts</a></li>
+            <li class="nav-item"><a href="Financials goals.html"><i class="icons fas fa-wallet"></i> Financials</a></li>
+            <li class="nav-item"><a href="reports.html"><i class="icons fas fa-file-alt"></i> Reports</a></li>
+            <li class="nav-item"><a href="budget.html"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
+            <li class="nav-item"><a href="income.html"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
+            <li class="nav-item"><a href="categories.html"><i class="icons fas fa-tags"></i> Categories</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>Budgets</h1>
+            </div>
+            <div class="top-actions">
+                <div class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="settings-btn">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Content -->
+        <div class="budget-content">
+            <div class="budget-summary">
+                <div class="summary-item">
+                    <div class="summary-value">$2,500</div>
+                    <div class="summary-label">Total Budget</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">$1,200</div>
+                    <div class="summary-label">Total Spent</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">$1,300</div>
+                    <div class="summary-label">Remaining</div>
+                </div>
+            </div>
+
+            <div class="budget-list" id="budgetList">
+                <!-- Budget items will be added here dynamically -->
+                <div class="budget-item">
+                    <div class="budget-header">
+                        <div class="budget-category">Groceries</div>
+                        <div class="budget-amount">$500 / $600</div>
+                        <div class="budget-actions">
+                            <button class="budget-action-btn edit-budget">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="budget-action-btn delete-budget">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 83%"></div>
+                    </div>
+                    <div class="budget-details">
+                        <span>$100 remaining</span>
+                        <span>83% spent</span>
+                    </div>
+                </div>
+
+                <div class="budget-item">
+                    <div class="budget-header">
+                        <div class="budget-category">Utilities</div>
+                        <div class="budget-amount">$250 / $300</div>
+                        <div class="budget-actions">
+                            <button class="budget-action-btn edit-budget">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="budget-action-btn delete-budget">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 83%"></div>
+                    </div>
+                    <div class="budget-details">
+                        <span>$50 remaining</span>
+                        <span>83% spent</span>
+                    </div>
+                </div>
+
+                <div class="budget-item">
+                    <div class="budget-header">
+                        <div class="budget-category">Entertainment</div>
+                        <div class="budget-amount">$180 / $200</div>
+                        <div class="budget-actions">
+                            <button class="budget-action-btn edit-budget">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="budget-action-btn delete-budget">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 90%"></div>
+                    </div>
+                    <div class="budget-details">
+                        <span>$20 remaining</span>
+                        <span>90% spent</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="add-budget-btn" id="addBudgetBtn">
+                <i class="fas fa-plus"></i>
+                Add Budget
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div class="overlay" id="settingsOverlay"></div>
+
+    <!-- Settings Card -->
+    <div class="card settings-card" id="settingsCard">
+      <div class="card-item">
+          <span class="material-icons">palette</span>
+          <span>Change Theme</span>
+      </div>
+      <div class="card-item">
+          <span class="material-icons">lock</span>
+          <span>Privacy Settings</span>
+      </div>
+      <div class="card-item">
+          <span class="material-icons">notifications_active</span>
+          <span>Notification Preferences</span>
+      </div>
+  </div>
+
+    <!-- Profile Overlay -->
+    <div class="overlay" id="profileOverlay"></div>
+
+    <div class="card profile-popup" id="profileCard">
+      <div class="avatar">M</div>
+      <div class="profile-info">
+          <p><strong>Mohab Mohamed</strong></p>
+          <p>mohab123@gmail.com</p>
+      </div>
+      <div class="info-field">
+          <label>Name</label>
+          <p class="info-value">Mohab Mohamed</p>
+      </div>
+      <div class="info-field">
+          <label>Email Account</label>
+          <p class="info-value">mohab123@gmail.com</p>
+      </div>
+      <div class="info-field">
+          <label>Phone Number</label>
+          <p class="info-value">+1234567890</p>
+      </div>
+  </div>
+
+    <!-- Set Budget Modal -->
+    <div class="modal-overlay" id="setBudgetModal">
+      <div class="modal">
+          <div class="modal-header">
+              <h3 class="modal-title">Create New Budget</h3>
+              <button class="modal-close" id="closeSetBudgetModal">&times;</button>
+          </div>
+          <form id="setBudgetForm">
+              <div class="form-group">
+                  <label class="form-label">Category</label>
+                  <select class="form-input" id="budgetCategory" required>
+                      <option value="">Select a category</option>
+                      <option value="groceries">Groceries</option>
+                      <option value="utilities">Utilities</option>
+                      <option value="entertainment">Entertainment</option>
+                      <option value="transportation">Transportation</option>
+                      <option value="dining">Dining Out</option>
+                      <option value="health">Health & Fitness</option>
+                      <option value="shopping">Shopping</option>
+                      <option value="education">Education</option>
+                      <option value="other">Other</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label class="form-label">Budget Amount ($)</label>
+                  <input type="number" class="form-input" id="budgetAmount" min="0" step="0.01" placeholder="0.00" required>
+              </div>
+              <div class="form-group">
+                  <label class="form-label">Current Spending ($)</label>
+                  <input type="number" class="form-input" id="currentSpending" min="0" step="0.01" placeholder="0.00" required>
+              </div>
+              <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" id="cancelSetBudget">Cancel</button>
+                  <button type="submit" class="btn btn-primary">
+                      <i class="fas fa-save"></i> Save Budget
+                  </button>
+              </div>
+          </form>
+      </div>
+  </div>
+
+<!-- Edit Budget Modal -->
+<div class="modal-overlay" id="editBudgetModal">
+  <div class="modal">
+      <div class="modal-header">
+          <h3 class="modal-title">Edit Budget</h3>
+          <button class="modal-close" id="closeEditBudgetModal">&times;</button>
+      </div>
+      <form id="editBudgetForm">
+          <div class="form-group">
+              <label class="form-label">Category</label>
+              <input type="text" class="form-input" id="editCategory" readonly>
+          </div>
+          <div class="form-group">
+              <label class="form-label">Budget Amount ($)</label>
+              <input type="number" class="form-input" id="editBudgetAmount" min="0" step="0.01" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+              <label class="form-label">Current Spending ($)</label>
+              <input type="number" class="form-input" id="editCurrentSpending" min="0" step="0.01" placeholder="0.00" required>
+          </div>
+          <div class="form-actions">
+              <button type="button" class="btn btn-secondary" id="cancelEditBudget">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Update Budget
+              </button>
+          </div>
+      </form>
+  </div>
+</div>
+    <!-- Alert Notification -->
+    <div class="alert" id="alertNotification">
+        <i class="fas fa-check-circle"></i>
+        <span id="alertMessage">Budget created successfully!</span>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sample budget data
+        let budgets = [
+            { id: 1, category: 'Groceries', budgetAmount: 600, currentSpending: 500 },
+            { id: 2, category: 'Utilities', budgetAmount: 300, currentSpending: 250 },
+            { id: 3, category: 'Entertainment', budgetAmount: 200, currentSpending: 180 }
+        ];
+
+        // DOM elements
+        const budgetList = document.getElementById('budgetList');
+        const addBudgetBtn = document.getElementById('addBudgetBtn');
+        const setBudgetModal = document.getElementById('setBudgetModal');
+        const editBudgetModal = document.getElementById('editBudgetModal');
+        const closeSetBudgetModal = document.getElementById('closeSetBudgetModal');
+        const closeEditBudgetModal = document.getElementById('closeEditBudgetModal');
+        const cancelSetBudget = document.getElementById('cancelSetBudget');
+        const cancelEditBudget = document.getElementById('cancelEditBudget');
+        const setBudgetForm = document.getElementById('setBudgetForm');
+        const editBudgetForm = document.getElementById('editBudgetForm');
+        const profileOverlay = document.getElementById('profileOverlay');
+        const profileCard = document.getElementById('profileCard');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const settingsCard = document.getElementById('settingsCard');
+        const alertNotification = document.getElementById('alertNotification');
+        const alertMessage = document.getElementById('alertMessage');
+
+        // Show alert notification
+        function showAlert(message, type = 'success') {
+            alertMessage.textContent = message;
+            alertNotification.className = 'alert';
+            alertNotification.classList.add(type);
+            alertNotification.classList.add('show');
+            
+            setTimeout(() => {
+                alertNotification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Profile click event
+        document.getElementById('profile-section').addEventListener('click', function() {
+            profileOverlay.style.display = 'block';
+            profileCard.style.display = 'block';
+        });
+
+        // Close profile popup
+        profileOverlay.addEventListener('click', function() {
+            this.style.display = 'none';
+            profileCard.style.display = 'none';
+        });
+
+        // Settings button click
+        document.querySelector('.settings-btn').addEventListener('click', function() {
+            settingsOverlay.style.display = 'block';
+            settingsCard.style.display = 'block';
+        });
+
+        // Close settings popup
+        settingsOverlay.addEventListener('click', function() {
+            this.style.display = 'none';
+            settingsCard.style.display = 'none';
+        });
+
+        // Close modals when clicking outside
+        [setBudgetModal, editBudgetModal].forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Render budget list
+        function renderBudgets() {
+            budgetList.innerHTML = '';
+            
+            // Calculate totals
+            let totalBudget = 0;
+            let totalSpent = 0;
+            
+            budgets.forEach(budget => {
+                totalBudget += budget.budgetAmount;
+                totalSpent += budget.currentSpending;
+                
+                const remaining = budget.budgetAmount - budget.currentSpending;
+                const percentage = (budget.currentSpending / budget.budgetAmount) * 100;
+                
+                const budgetItem = document.createElement('div');
+                budgetItem.className = 'budget-item';
+                budgetItem.dataset.id = budget.id;
+                budgetItem.innerHTML = `
+                    <div class="budget-header">
+                        <div class="budget-category">${budget.category}</div>
+                        <div class="budget-amount">$${budget.currentSpending.toFixed(2)} / $${budget.budgetAmount.toFixed(2)}</div>
+                        <div class="budget-actions">
+                            <button class="budget-action-btn edit-budget">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="budget-action-btn delete-budget">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar ${percentage > 90 ? 'danger' : percentage > 75 ? 'warning' : ''}" style="width: ${Math.min(percentage, 100)}%"></div>
+                    </div>
+                    <div class="budget-details">
+                        <span>$${remaining.toFixed(2)} remaining</span>
+                        <span>${Math.round(percentage)}% spent</span>
+                    </div>
+                `;
+                
+                budgetList.appendChild(budgetItem);
+            });
+            
+            // Update summary
+            document.querySelector('.summary-value:nth-child(1)').textContent = `$${totalBudget.toFixed(2)}`;
+            document.querySelector('.summary-value:nth-child(2)').textContent = `$${totalSpent.toFixed(2)}`;
+            document.querySelector('.summary-value:nth-child(3)').textContent = `$${(totalBudget - totalSpent).toFixed(2)}`;
+        }
+
+        // Open Set Budget Modal
+        addBudgetBtn.addEventListener('click', function() {
+            setBudgetModal.classList.add('active');
+        });
+
+        // Close Set Budget Modal
+        closeSetBudgetModal.addEventListener('click', function() {
+            setBudgetModal.classList.remove('active');
+        });
+
+        cancelSetBudget.addEventListener('click', function() {
+            setBudgetModal.classList.remove('active');
+        });
+
+        // Open Edit Budget Modal
+
+        budgetList.addEventListener('click', function(e) {
+            if (e.target.closest('.edit-budget')) {
+                const budgetItem = e.target.closest('.budget-item');
+                const budgetId = parseInt(budgetItem.dataset.id);
+                const budget = budgets.find(b => b.id === budgetId);
+                
+                // Populate edit form
+                const form = editBudgetForm;
+                form.dataset.id = budgetId;
+                document.getElementById('editCategory').value = budget.category;
+                document.getElementById('editBudgetAmount').value = budget.budgetAmount;
+                document.getElementById('editCurrentSpending').value = budget.currentSpending;
+                
+                editBudgetModal.classList.add('active');
+            }
+            
+            if (e.target.closest('.delete-budget')) {
+                const budgetItem = e.target.closest('.budget-item');
+                const budgetId = parseInt(budgetItem.dataset.id);
+                const budget = budgets.find(b => b.id === budgetId);
+                
+                // Create custom confirmation dialog
+                const confirmModal = document.createElement('div');
+                confirmModal.className = 'modal-overlay active';
+                confirmModal.innerHTML = `
+                    <div class="modal confirmation-dialog">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Confirm Deletion</h3>
+                            <button class="modal-close" id="closeConfirmModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <p>Are you sure you want to delete the budget for <strong>${budget.category}</strong>?</p>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelDeleteBudget">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" class="btn btn-danger" id="confirmDeleteBudget">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(confirmModal);
+                
+                // Close handlers
+                const closeModal = () => confirmModal.remove();
+                
+                document.getElementById('closeConfirmModal').addEventListener('click', closeModal);
+                document.getElementById('cancelDeleteBudget').addEventListener('click', closeModal);
+                
+                document.getElementById('confirmDeleteBudget').addEventListener('click', function() {
+                    budgets = budgets.filter(b => b.id !== budgetId);
+                    renderBudgets();
+                    closeModal();
+                    showAlert('Budget deleted successfully!');
+                });
+            }
+        });
+
+
+
+        // Close Edit Budget Modal
+        closeEditBudgetModal.addEventListener('click', function() {
+            editBudgetModal.classList.remove('active');
+        });
+
+        cancelEditBudget.addEventListener('click', function() {
+            editBudgetModal.classList.remove('active');
+        });
+
+        // Submit Set Budget Form
+        setBudgetForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const categorySelect = document.getElementById('budgetCategory');
+            const category = categorySelect.value;
+            const budgetAmount = parseFloat(document.getElementById('budgetAmount').value);
+            const currentSpending = parseFloat(document.getElementById('currentSpending').value);
+            
+            // Validate inputs
+            if (currentSpending > budgetAmount) {
+                showAlert('Current spending cannot exceed budget amount!', 'error');
+                return;
+            }
+            
+            if (budgets.some(b => b.category.toLowerCase() === category.toLowerCase())) {
+                showAlert('Budget for this category already exists!', 'error');
+                return;
+            }
+            
+            // Create new budget
+            const newBudget = {
+                id: Date.now(),
+                category: category.charAt(0).toUpperCase() + category.slice(1),
+                budgetAmount,
+                currentSpending
+            };
+            
+            budgets.push(newBudget);
+            renderBudgets();
+            setBudgetModal.classList.remove('active');
+            this.reset();
+            showAlert('Budget created successfully!');
+        });
+
+        // Submit Edit Budget Form
+        editBudgetForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const budgetId = parseInt(this.dataset.id);
+            const budgetAmount = parseFloat(document.getElementById('editBudgetAmount').value);
+            const currentSpending = parseFloat(document.getElementById('editCurrentSpending').value);
+            
+            // Validate inputs
+            if (currentSpending > budgetAmount) {
+                showAlert('Current spending cannot exceed budget amount!', 'error');
+                return;
+            }
+            
+            // Update budget
+            const budgetIndex = budgets.findIndex(b => b.id === budgetId);
+            if (budgetIndex !== -1) {
+                budgets[budgetIndex].budgetAmount = budgetAmount;
+                budgets[budgetIndex].currentSpending = currentSpending;
+            }
+            
+            renderBudgets();
+            editBudgetModal.classList.remove('active');
+            showAlert('Budget updated successfully!');
+        });
+
+        // Notification button click
+        document.querySelector('.notification-btn').addEventListener('click', function() {
+            // Check for budgets that are over 75% spent
+            const warningBudgets = budgets.filter(budget => {
+                const percentage = (budget.currentSpending / budget.budgetAmount) * 100;
+                return percentage > 75;
+            });
+            
+            if (warningBudgets.length === 0) {
+                showAlert('No budget warnings at this time.', 'success');
+            } else {
+                const warningMessages = warningBudgets.map(budget => {
+                    const percentage = Math.round((budget.currentSpending / budget.budgetAmount) * 100);
+                    return `${budget.category} (${percentage}% spent)`;
+                });
+                
+                showAlert(`Warning: ${warningMessages.join(', ')} are close to or over budget!`, 'warning');
+            }
+        });
+
+        // Initial render
+        renderBudgets();
+    });
+</script>
+</body>
+</html>

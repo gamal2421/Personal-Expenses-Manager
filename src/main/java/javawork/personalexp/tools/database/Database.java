@@ -3,7 +3,6 @@ package javawork.personalexp.tools.database;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import javawork.personalexp.models.Budget;
 import javawork.personalexp.models.Category;
 import javawork.personalexp.models.Report;
@@ -258,4 +257,61 @@ public class Database {
             return false;
         }
     }
+
+    public static int addIncomeWithId(int userId, String sourceName, double amount) {
+        String sql = "INSERT INTO incomes (user_id, source_name, amount) VALUES (?, ?, ?) RETURNING id";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, userId);
+            stmt.setString(2, sourceName);
+            stmt.setDouble(3, amount);
+            
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    
+    public static void addIncome(int userId, String sourceName, double amount) {
+        addIncomeWithId(userId, sourceName, amount);
+    }
+    
+    public static boolean updateIncome(int incomeId, String sourceName, double amount) {
+        String sql = "UPDATE income SET source_name = ?, amount = ? WHERE id = ?";
+        
+        try (Connection conn = getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setString(1, sourceName);
+            stmt.setDouble(2, amount);
+            stmt.setInt(3, incomeId);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean deleteIncome(int incomeId) {
+        String sql = "DELETE FROM income WHERE id = ?";
+        
+        try (Connection conn = getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, incomeId);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
