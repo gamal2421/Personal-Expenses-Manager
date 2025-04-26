@@ -3,16 +3,16 @@ package javawork.personalexp.models;
 public class Category {
     private int id;
     private String name;
-    private int userId; // Add the userId field as per your requirement
+    private int userId;
 
     // Constructor
     public Category(int id, String name, int userId) {
         this.id = id;
         this.name = name;
-        this.userId = userId;  // Initialize the userId field
+        this.userId = userId;
     }
 
-    // Getters and Setters
+    // Getters and setters
     public int getId() {
         return id;
     }

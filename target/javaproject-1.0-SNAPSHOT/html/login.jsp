@@ -1,22 +1,27 @@
-<%@ page import="javawork.personalexp.tools.database.Database" %>
+<%@ page import="javawork.personalexp.tools.Database" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
     String errorMsg = null;
     String email = request.getParameter("email");
     String password = request.getParameter("password");
 
+    // Check if email and password are provided
     if (email != null && password != null) {
+        // Validate the credentials
         if (Database.isValidUser(email, password)) {
-            session.setAttribute("userEmail", email);
-            session.setAttribute("userName", Database.getUserNameByEmail(email));
-            response.sendRedirect("dashboard.jsp");
-            return;
+            // Set session attributes for the logged-in user
+            session.setAttribute("userEmail", email);  
+            session.setAttribute("userName", Database.getUserNameByEmail(email)); 
+            
+            // Redirect to the dashboard
+            response.sendRedirect("dashboard.jsp");   
+            return;  // Ensure no further processing happens after redirection
         } else {
+            // Set an error message if credentials are invalid
             errorMsg = "Invalid email or password.";
         }
     }
 %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,12 +36,6 @@
     <!-- Sign In Section -->
     <div class="left-section">
       <h2>Sign in to PEM</h2>
-      <div class="social-buttons">
-        <button class="social-btn"><i class="fab fa-facebook-f"></i></button>
-        <button class="social-btn"><i class="fab fa-google"></i></button>
-        <button class="social-btn"><i class="fab fa-linkedin-in"></i></button>
-      </div>
-      <p class="muted">or use your email account</p>
       <form method="post" action="login.jsp" id="loginForm">
         <div class="input-wrapper">
           <input type="email" name="email" placeholder="Email" required />
@@ -44,19 +43,16 @@
         <div class="input-wrapper">
           <input type="password" name="password" placeholder="Password" required />
         </div>
-        <a href="#" class="forgot-password">Forgot your password?</a>
         <button type="submit" class="signin-btn">SIGN IN</button>
         <% if (errorMsg != null) { %>
           <p style="color:red;"><%= errorMsg %></p>
         <% } %>
       </form>
     </div>
-
     <!-- Welcome Section -->
     <div class="right-section">
       <h1>Hello, Friend!</h1>
-      <p>Enter your personal details<br>and start journey with us</p>
-      <button class="signup-outline-btn" onclick="location.href='signup.jsp'">SIGN UP</button>
+      <button class="signup-outline-btn" onclick="window.location.href='signup.jsp'">SIGN UP</button>
     </div>
   </div>
 </body>
