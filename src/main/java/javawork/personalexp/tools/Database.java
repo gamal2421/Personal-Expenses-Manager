@@ -333,62 +333,103 @@ public class Database {
             getTotalSavings(userId)
         );
     }
-    public static Budget getBudgetById(int id) throws SQLException {
-        Budget budget = null;
-        try (Connection conn = getConnection()) {
-            String sql = "SELECT id, user_id, category, budget_amount, current_spending FROM budgets WHERE id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    budget = new Budget(
-                        rs.getInt("id"),
-                        rs.getString("category"),
-                        rs.getDouble("budget_amount"),
-                        rs.getDouble("current_spending")
-                    );
-                    // Assuming you add userId to your Budget model
-                    budget.setUserId(rs.getInt("user_id"));
-                }
-            }
-        }
-        return budget;
-    }
-// Budget-related methods in Database class
-public static boolean addBudget(int userId, String category, double budgetAmount, double currentSpending) {
+// Add these methods to your Database class
+
+
+public static List<Budget> getBudgets(int userId) {
+    List<Budget> budgets = new ArrayList<>();
     try (Connection conn = getConnection();
          PreparedStatement stmt = conn.prepareStatement(
-             "INSERT INTO budgets (user_id, category, budget_amount, current_spending) VALUES (?, ?, ?, ?)")) {
+             "SELECT id, category_id, category, budget_amount, current_spending, " +
+             "created_at, updated_at FROM budgets WHERE user_id = ? ORDER BY created_at DESC")) {
         
         stmt.setInt(1, userId);
-        stmt.setString(2, category);
-        stmt.setDouble(3, budgetAmount);
-        stmt.setDouble(4, currentSpending);
+        ResultSet rs = stmt.executeQuery();
         
-        return stmt.executeUpdate() > 0;
+        while (rs.next()) {
+            Budget budget = new Budget();
+            budget.setId(rs.getInt("id"));
+            budget.setUserId(userId);
+            budget.setCategoryId(rs.getInt("category_id"));
+            budget.setCategory(rs.getString("category"));
+            budget.setBudgetAmount(rs.getDouble("budget_amount"));
+            budget.setCurrentSpending(rs.getDouble("current_spending"));
+            budget.setCreatedAt(rs.getString("created_at"));
+            budget.setUpdatedAt(rs.getString("updated_at"));
+            budgets.add(budget);
+        }
     } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error adding budget for user: " + userId, e);
+        logger.log(Level.SEVERE, "Error fetching budgets", e);
+    }
+    return budgets;
+}
+
+public static boolean updateBudget(int id, int categoryId, double budgetAmount, double currentSpending) {
+    try (Connection conn = getConnection()) {
+        // Get category name
+        String categoryName = "";
+        String getNameSql = "SELECT name FROM categories WHERE id = ?";
+        try (PreparedStatement getNameStmt = conn.prepareStatement(getNameSql)) {
+            getNameStmt.setInt(1, categoryId);
+            ResultSet rs = getNameStmt.executeQuery();
+            if (rs.next()) {
+                categoryName = rs.getString("name");
+            } else {
+                return false; // Category not found
+            }
+        }
+
+        // Update budget
+        String updateSql = "UPDATE budgets SET category_id = ?, category = ?, " +
+                         "budget_amount = ?, current_spending = ?, updated_at = CURRENT_TIMESTAMP " +
+                         "WHERE id = ?";
+        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+            updateStmt.setInt(1, categoryId);
+            updateStmt.setString(2, categoryName);
+            updateStmt.setDouble(3, budgetAmount);
+            updateStmt.setDouble(4, currentSpending);
+            updateStmt.setInt(5, id);
+            
+            return updateStmt.executeUpdate() > 0;
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error updating budget", e);
         return false;
     }
 }
 
-public static boolean updateBudget(int id, String category, double budgetAmount, double currentSpending) {
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "UPDATE budgets SET category = ?, budget_amount = ?, current_spending = ? WHERE id = ?")) {
-        
-        stmt.setString(1, category);
-        stmt.setDouble(2, budgetAmount);
-        stmt.setDouble(3, currentSpending);
-        stmt.setInt(4, id);
-        
-        return stmt.executeUpdate() > 0;
+public static boolean addBudget(int userId, int categoryId, double budgetAmount, double currentSpending) {
+    try (Connection conn = getConnection()) {
+        // First get the category name
+        String categoryName = "";
+        String getNameSql = "SELECT name FROM categories WHERE id = ?";
+        try (PreparedStatement getNameStmt = conn.prepareStatement(getNameSql)) {
+            getNameStmt.setInt(1, categoryId);
+            ResultSet rs = getNameStmt.executeQuery();
+            if (rs.next()) {
+                categoryName = rs.getString("name");
+            } else {
+                return false; // Category not found
+            }
+        }
+
+        // Then insert the budget
+        String insertSql = "INSERT INTO budgets (user_id, category_id, category, budget_amount, current_spending) " +
+                         "VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+            insertStmt.setInt(1, userId);
+            insertStmt.setInt(2, categoryId);
+            insertStmt.setString(3, categoryName);
+            insertStmt.setDouble(4, budgetAmount);
+            insertStmt.setDouble(5, currentSpending);
+            
+            return insertStmt.executeUpdate() > 0;
+        }
     } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error updating budget ID: " + id, e);
+        logger.log(Level.SEVERE, "Error adding budget", e);
         return false;
     }
 }
-
 public static boolean deleteBudget(int id) {
     try (Connection conn = getConnection();
          PreparedStatement stmt = conn.prepareStatement(
@@ -397,34 +438,10 @@ public static boolean deleteBudget(int id) {
         stmt.setInt(1, id);
         return stmt.executeUpdate() > 0;
     } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error deleting budget ID: " + id, e);
+        logger.log(Level.SEVERE, "Error deleting budget", e);
         return false;
     }
 }
-
-public static List<Budget> getBudgets(int userId) {
-    List<Budget> budgets = new ArrayList<>();
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "SELECT id, category, budget_amount, current_spending FROM budgets WHERE user_id = ?")) {
-        
-        stmt.setInt(1, userId);
-        ResultSet rs = stmt.executeQuery();
-        
-        while (rs.next()) {
-            budgets.add(new Budget(
-                rs.getInt("id"),
-                rs.getString("category"),
-                rs.getDouble("budget_amount"),  // Fixed typo from "budget_amount" to match your table
-                rs.getDouble("current_spending")
-            ));
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching budgets for user: " + userId, e);
-    }
-    return budgets;
-}
-
 // Add this to your Database class
 public static boolean addSavingGoal(int userId, String title, String description, 
                                   double targetAmount, Date targetDate, double currentAmount) {
