@@ -1,6 +1,7 @@
 <%@ page import="javawork.personalexp.tools.Database" %>
 <%@ page import="javawork.personalexp.models.User" %>
 <%@ page import="javawork.personalexp.models.Budget" %>
+<%@ page import="javawork.personalexp.models.Category" %>
 <%@ page import="java.util.List" %>
 <%
     // Check if user is logged in
@@ -17,7 +18,8 @@
         
         try {
             if ("add".equals(action)) {
-                String category = request.getParameter("category");
+                int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+                String categoryName = request.getParameter("categoryName");
                 double budgetAmount = Double.parseDouble(request.getParameter("budgetAmount"));
                 double currentSpending = 0.0;
                 
@@ -27,7 +29,7 @@
                     currentSpending = Double.parseDouble(spendingParam);
                 }
                 
-                Database.addBudget(userId, category, budgetAmount, currentSpending);
+                Database.addBudget(userId, categoryName, budgetAmount, currentSpending);
             } 
             else if ("delete".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
@@ -35,10 +37,11 @@
             }
             else if ("update".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
-                String category = request.getParameter("category");
+                int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+                String categoryName = request.getParameter("categoryName");
                 double budgetAmount = Double.parseDouble(request.getParameter("budgetAmount"));
                 double currentSpending = Double.parseDouble(request.getParameter("currentSpending"));
-                Database.updateBudget(id, category, budgetAmount, currentSpending);
+                Database.updateBudget(id, categoryName, budgetAmount, currentSpending);
             }
         } catch (Exception e) {
             request.setAttribute("error", "Error: " + e.getMessage());
@@ -52,6 +55,7 @@
     int userId = Database.getUserIdByEmail(userEmail);
     User user = Database.getUserInfo(userId);
     List<Budget> budgets = Database.getBudgets(userId);
+    List<Category> categories = Database.getCategories(userId);
     
     // Calculate totals
     double totalBudget = 0;
@@ -71,6 +75,62 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="../css/budget.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .form-actions button {
+            padding: 8px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-actions .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .form-actions .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <div class="main-page">
@@ -167,55 +227,125 @@
         </div>
     </div>
 </div>
+
+<!-- Add Budget Modal -->
+<div id="addBudgetModal" class="modal">
+    <div class="modal-content">
+        <h2>Add New Budget</h2>
+        <form id="addBudgetForm" method="POST" action="budget.jsp">
+            <input type="hidden" name="action" value="add">
+            
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select id="category" name="categoryId" required>
+                    <option value="">Select a category</option>
+                    <% for (Category category : categories) { %>
+                        <option value="<%= category.getId() %>"><%= category.getName() %></option>
+                    <% } %>
+                </select>
+                <input type="hidden" id="categoryName" name="categoryName">
+            </div>
+            
+            <div class="form-group">
+                <label for="budgetAmount">Budget Amount:</label>
+                <input type="number" id="budgetAmount" name="budgetAmount" step="0.01" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="currentSpending">Current Spending (optional):</label>
+                <input type="number" id="currentSpending" name="currentSpending" step="0.01" min="0" value="0">
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="save-btn">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Budget Modal -->
+<div id="editBudgetModal" class="modal">
+    <div class="modal-content">
+        <h2>Edit Budget</h2>
+        <form id="editBudgetForm" method="POST" action="budget.jsp">
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" id="editId" name="id">
+            
+            <div class="form-group">
+                <label for="editCategory">Category:</label>
+                <select id="editCategory" name="categoryId" required>
+                    <option value="">Select a category</option>
+                    <% for (Category category : categories) { %>
+                        <option value="<%= category.getId() %>"><%= category.getName() %></option>
+                    <% } %>
+                </select>
+                <input type="hidden" id="editCategoryName" name="categoryName">
+            </div>
+            
+            <div class="form-group">
+                <label for="editBudgetAmount">Budget Amount:</label>
+                <input type="number" id="editBudgetAmount" name="budgetAmount" step="0.01" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="editCurrentSpending">Current Spending:</label>
+                <input type="number" id="editCurrentSpending" name="currentSpending" step="0.01" min="0" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="save-btn">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    // Define functions first before they're used
-    function editBudget(id, currentCategory, currentBudgetAmount, currentSpending) {
-        const newCategory = prompt('Edit budget category:', currentCategory);
-        if (newCategory && newCategory.trim()) {
-            const newBudgetAmount = parseFloat(prompt('Edit budget amount:', currentBudgetAmount));
-            if (!isNaN(newBudgetAmount)) {
-                const newCurrentSpending = parseFloat(prompt('Edit current spending:', currentSpending));
-                
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'budget.jsp';
-                
-                const actionInput = document.createElement('input');
-                actionInput.type = 'hidden';
-                actionInput.name = 'action';
-                actionInput.value = 'update';
-                form.appendChild(actionInput);
-                
-                const idInput = document.createElement('input');
-                idInput.type = 'hidden';
-                idInput.name = 'id';
-                idInput.value = id;
-                form.appendChild(idInput);
-                
-                const categoryInput = document.createElement('input');
-                categoryInput.type = 'hidden';
-                categoryInput.name = 'category';
-                categoryInput.value = newCategory;
-                form.appendChild(categoryInput);
-                
-                const amountInput = document.createElement('input');
-                amountInput.type = 'hidden';
-                amountInput.name = 'budgetAmount';
-                amountInput.value = newBudgetAmount;
-                form.appendChild(amountInput);
-                
-                const spendingInput = document.createElement('input');
-                spendingInput.type = 'hidden';
-                spendingInput.name = 'currentSpending';
-                spendingInput.value = newCurrentSpending;
-                form.appendChild(spendingInput);
-                
-                document.body.appendChild(form);
-                form.submit();
-            } else {
-                alert('Please enter a valid amount');
+    // Set up category name when selection changes
+    document.getElementById('category').addEventListener('change', function() {
+        var selectedOption = this.options[this.selectedIndex];
+        document.getElementById('categoryName').value = selectedOption.text;
+    });
+    
+    document.getElementById('editCategory').addEventListener('change', function() {
+        var selectedOption = this.options[this.selectedIndex];
+        document.getElementById('editCategoryName').value = selectedOption.text;
+    });
+
+    // Modal functions
+    function openAddModal() {
+        document.getElementById('addBudgetModal').style.display = 'block';
+    }
+    
+    function closeAddModal() {
+        document.getElementById('addBudgetModal').style.display = 'none';
+    }
+    
+    function openEditModal(id, categoryName, budgetAmount, currentSpending) {
+        // Find the category option that matches the current category name
+        var select = document.getElementById('editCategory');
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].text === categoryName) {
+                select.selectedIndex = i;
+                break;
             }
         }
+        
+        document.getElementById('editId').value = id;
+        document.getElementById('editCategoryName').value = categoryName;
+        document.getElementById('editBudgetAmount').value = budgetAmount;
+        document.getElementById('editCurrentSpending').value = currentSpending;
+        
+        document.getElementById('editBudgetModal').style.display = 'block';
+    }
+    
+    function closeEditModal() {
+        document.getElementById('editBudgetModal').style.display = 'none';
+    }
+    
+    function editBudget(id, categoryName, budgetAmount, currentSpending) {
+        openEditModal(id, categoryName, budgetAmount, currentSpending);
     }
 
     function deleteBudget(id) {
@@ -242,47 +372,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Add new budget
-        document.getElementById('addBudgetBtn').addEventListener('click', function() {
-            const category = prompt('Enter budget category:');
-            if (category && category.trim()) {
-                const budgetAmount = parseFloat(prompt('Enter budget amount:'));
-                if (!isNaN(budgetAmount)) {
-                    const currentSpending = parseFloat(prompt('Enter current spending:') || 0);
-                    
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'budget.jsp';
-                    
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'add';
-                    form.appendChild(actionInput);
-                    
-                    const categoryInput = document.createElement('input');
-                    categoryInput.type = 'hidden';
-                    categoryInput.name = 'category';
-                    categoryInput.value = category;
-                    form.appendChild(categoryInput);
-                    
-                    const amountInput = document.createElement('input');
-                    amountInput.type = 'hidden';
-                    amountInput.name = 'budgetAmount';
-                    amountInput.value = budgetAmount;
-                    form.appendChild(amountInput);
-                    
-                    const spendingInput = document.createElement('input');
-                    spendingInput.type = 'hidden';
-                    spendingInput.name = 'currentSpending';
-                    spendingInput.value = currentSpending;
-                    form.appendChild(spendingInput);
-                    
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    alert('Please enter a valid amount');
-                }
+        // Replace the old prompt-based add with modal
+        document.getElementById('addBudgetBtn').addEventListener('click', openAddModal);
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target.className === 'modal') {
+                closeAddModal();
+                closeEditModal();
             }
         });
     });
