@@ -21,12 +21,32 @@
     List<Map<String, Object>> budgets = Database.getAllBudgets(userId);
     List<Map<String, Object>> savingsGoals = Database.getAllSavingsGoals(userId);
     
+    // Get average budgets across all users
+    Map<String, Double> averageBudgets = Database.getAverageBudgetsByCategory();
+    
     // Calculate totals
     double totalIncome = incomes != null ? incomes.stream().mapToDouble(Income::getAmount).sum() : 0;
     double totalBudget = budgets != null ? budgets.stream().mapToDouble(b -> (Double)b.get("budget_amount")).sum() : 0;
     double totalSpending = budgets != null ? budgets.stream().mapToDouble(b -> (Double)b.get("current_spending")).sum() : 0;
     double totalSavingsTarget = savingsGoals != null ? savingsGoals.stream().mapToDouble(g -> (Double)g.get("target_amount")).sum() : 0;
     double totalSavingsCurrent = savingsGoals != null ? savingsGoals.stream().mapToDouble(g -> (Double)g.get("current_amount")).sum() : 0;
+    
+    // Calculate budget ranking counts
+    int highCount = 0, avgCount = 0, lowCount = 0;
+    if (budgets != null) {
+        for (Map<String, Object> budget : budgets) {
+            String categoryName = (String) budget.get("category");
+            Double avgBudget = averageBudgets.get(categoryName);
+            if (avgBudget != null) {
+                double budgetAmount = (Double) budget.get("budget_amount");
+                double percentageDiff = ((budgetAmount - avgBudget) / avgBudget) * 100;
+                
+                if (percentageDiff > 20) highCount++;
+                else if (percentageDiff < -20) lowCount++;
+                else avgCount++;
+            }
+        }
+    }
     
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 %>
@@ -38,11 +58,334 @@
   <title>Personal Expenses Manager - Complete Report</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/reports.css">
+  <style>
+    /* Background Gradient */
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(to right, #f4f9f4, #e0f7fa);
+    }
+
+    /* Main Container */
+    .main-page {
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* Sidebar Styling */
+    #sidebar {
+        background-color: rgb(246, 247, 244);
+        border-radius: 16px;
+        width: 250px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Profile Section */
+    #profile-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        margin-bottom: 30px;
+    }
+
+    /* Profile Image */
+    .profile-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid #1abc9c;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .profile-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Navigation */
+    .nav-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-grow: 1;
+    }
+
+    .nav-item {
+        margin-bottom: 15px;
+    }
+
+    .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px;
+        border-radius: 12px;
+        background-color: #f9f9f9;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .nav-item a:hover {
+        background-color: #3ab19b;
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .nav-item a:hover .icons {
+        color: white;
+    }
+
+    .icons {
+        color: #3ab19b;
+        font-size: 1.1em;
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Main Content Area */
+    .content-area {
+        flex-grow: 1;
+        margin-left: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Top Bar */
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        border-radius: 16px;
+        padding: 15px 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+
+    .page-title h1 {
+        margin: 0;
+        font-size: 24px;
+        color: #333;
+    }
+
+    .top-actions {
+        display: flex;
+        gap: 15px;
+    }
+
+    .notification-btn, .settings-btn {
+        background: white;
+        color: #3ab19b;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 10px rgba(58, 177, 155, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .notification-btn:hover, .settings-btn:hover {
+        transform: scale(1.1);
+        color: #1abc9c;
+    }
+
+    /* Report Content */
+    .report-content {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Summary Cards */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        background: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(58, 177, 155, 0.15);
+    }
+
+    .summary-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+        color: #666;
+    }
+
+    .summary-card .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #3ab19b;
+    }
+
+    .summary-card.income .value {
+        color: #2ecc71;
+    }
+
+    .summary-card.budget .value {
+        color: #3498db;
+    }
+
+    .summary-card.spending .value {
+        color: #e74c3c;
+    }
+
+    .summary-card.comparison {
+        background: #f8f9fa;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        width: 100%;
+        height: 8px;
+        background: #ecf0f1;
+        border-radius: 4px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: #3ab19b;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    /* Rank Summary */
+    .rank-summary {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 15px;
+    }
+
+    .rank-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .high-rank {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .avg-rank {
+        background-color: #f39c12;
+        color: white;
+    }
+
+    .low-rank {
+        background-color: #2ecc71;
+        color: white;
+    }
+
+    .achieved {
+        background-color: #2ecc71;
+        color: white;
+    }
+
+    .in-progress {
+        background-color: #f39c12;
+        color: white;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+
+    th {
+        text-align: left;
+        padding: 12px 15px;
+        background: #f9f9f9;
+        color: #333;
+        font-weight: 500;
+    }
+
+    td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background-color: #f5f5f5;
+    }
+
+    /* Section Headers */
+    .section-header {
+        margin: 30px 0 15px 0;
+        color: #3ab19b;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        color: #7f8c8d;
+        padding: 20px;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+  </style>
 </head>
 <body>
 <div class="main-page">
-    <!-- Sidebar remains the same -->
+    <!-- Sidebar -->
     <div id="sidebar">
         <div id="profile-section">
             <div class="profile-image">
@@ -94,11 +437,21 @@
                     <p class="value">$<%= String.format("%.2f", totalSpending) %></p>
                 </div>
                 
-                <div class="summary-card savings">
-                    <h3>Savings Progress</h3>
-                    <p class="value">$<%= String.format("%.2f", totalSavingsCurrent) %> / $<%= String.format("%.2f", totalSavingsTarget) %></p>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: <%= totalSavingsTarget > 0 ? (totalSavingsCurrent / totalSavingsTarget * 100) : 0 %>%"></div>
+                <div class="summary-card comparison">
+                    <h3>Budget Comparison</h3>
+                    <div class="rank-summary">
+                        <div class="rank-item">
+                            <span class="badge high-rank"><%= highCount %></span>
+                            <span>High</span>
+                        </div>
+                        <div class="rank-item">
+                            <span class="badge avg-rank"><%= avgCount %></span>
+                            <span>Average</span>
+                        </div>
+                        <div class="rank-item">
+                            <span class="badge low-rank"><%= lowCount %></span>
+                            <span>Low</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,7 +497,7 @@
                         <td><%= income.getId() %></td>
                         <td><%= income.getSource() %></td>
                         <td>$<%= String.format("%.2f", income.getAmount()) %></td>
-                        <td>N/A</td> <!-- Removed date formatting since getDate() doesn't exist -->
+                        <td>N/A</td>
                     </tr>
                     <% } 
                     } else { %>
@@ -155,14 +508,16 @@
                 </tbody>
             </table>
 
-            <!-- Rest of your tables (budgets and savings goals) remain the same -->
             <h3 class="section-header"><i class="fas fa-money-bill-wave"></i> Budgets</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Category</th>
-                        <th>Budget Amount</th>
+                        <th>Your Budget</th>
+                        <th>Avg Budget</th>
+                        <th>Comparison</th>
+                        <th>Rank</th>
                         <th>Current Spending</th>
                         <th>Remaining</th>
                         <th>Created</th>
@@ -174,11 +529,40 @@
                             double budgetAmount = (Double) budget.get("budget_amount");
                             double currentSpending = (Double) budget.get("current_spending");
                             double remaining = budgetAmount - currentSpending;
+                            String categoryName = (String) budget.get("category");
+                            Double avgBudget = averageBudgets.get(categoryName);
+                            
+                            // Calculate comparison and rank
+                            String comparison = "N/A";
+                            String rank = "N/A";
+                            String rankClass = "";
+                            
+                            if (avgBudget != null) {
+                                double difference = budgetAmount - avgBudget;
+                                double percentageDiff = (difference / avgBudget) * 100;
+                                
+                                if (percentageDiff > 20) {
+                                    comparison = String.format("+%.1f%%", percentageDiff);
+                                    rank = "High";
+                                    rankClass = "high-rank";
+                                } else if (percentageDiff < -20) {
+                                    comparison = String.format("%.1f%%", percentageDiff);
+                                    rank = "Low";
+                                    rankClass = "low-rank";
+                                } else {
+                                    comparison = String.format("%.1f%%", percentageDiff);
+                                    rank = "Average";
+                                    rankClass = "avg-rank";
+                                }
+                            }
                     %>
                     <tr>
                         <td><%= budget.get("id") %></td>
-                        <td><%= budget.get("category") %></td>
+                        <td><%= categoryName %></td>
                         <td>$<%= String.format("%.2f", budgetAmount) %></td>
+                        <td><%= avgBudget != null ? "$" + String.format("%.2f", avgBudget) : "N/A" %></td>
+                        <td><%= comparison %></td>
+                        <td><span class="badge <%= rankClass %>"><%= rank %></span></td>
                         <td>$<%= String.format("%.2f", currentSpending) %></td>
                         <td style="color: <%= remaining >= 0 ? "#2ecc71" : "#e74c3c" %>">
                             $<%= String.format("%.2f", remaining) %>
@@ -188,7 +572,7 @@
                     <% } 
                     } else { %>
                     <tr>
-                        <td colspan="6" class="empty-state">No budgets found</td>
+                        <td colspan="9" class="empty-state">No budgets found</td>
                     </tr>
                     <% } %>
                 </tbody>

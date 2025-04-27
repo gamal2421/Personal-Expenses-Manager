@@ -11,10 +11,13 @@
         return;
     }
 
+    int userId = Database.getUserIdByEmail(userEmail);
+    boolean isAdmin = Database.isAdmin(userId);
+    User user = Database.getUserInfo(userId);
+
     // Handle form submissions
     if ("POST".equals(request.getMethod())) {
         String action = request.getParameter("action");
-        int userId = Database.getUserIdByEmail(userEmail);
         
         try {
             if ("add".equals(action)) {
@@ -23,7 +26,6 @@
                 double budgetAmount = Double.parseDouble(request.getParameter("budgetAmount"));
                 double currentSpending = 0.0;
                 
-                // Safely get currentSpending parameter
                 String spendingParam = request.getParameter("currentSpending");
                 if (spendingParam != null && !spendingParam.trim().isEmpty()) {
                     currentSpending = Double.parseDouble(spendingParam);
@@ -33,6 +35,8 @@
             } 
             else if ("delete".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
+                // For now, allow all users to delete their own budgets
+                // You'll need to implement proper ownership checking in your Database class
                 Database.deleteBudget(id);
             }
             else if ("update".equals(action)) {
@@ -41,6 +45,7 @@
                 String categoryName = request.getParameter("categoryName");
                 double budgetAmount = Double.parseDouble(request.getParameter("budgetAmount"));
                 double currentSpending = Double.parseDouble(request.getParameter("currentSpending"));
+                // For now, allow all users to update their own budgets
                 Database.updateBudget(id, categoryName, budgetAmount, currentSpending);
             }
         } catch (Exception e) {
@@ -52,10 +57,8 @@
     }
 
     // Load data
-    int userId = Database.getUserIdByEmail(userEmail);
-    User user = Database.getUserInfo(userId);
     List<Budget> budgets = Database.getBudgets(userId);
-    List<Category> categories = Database.getCategories(userId);
+    List<Category> categories = Database.getCategories(); // Get all categories
     
     // Calculate totals
     double totalBudget = 0;
@@ -130,6 +133,18 @@
             background-color: #f44336;
             color: white;
         }
+        .admin-badge {
+            background-color: #4CAF50;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .user-budget-actions {
+            display: flex;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
@@ -141,6 +156,9 @@
             </div>
             <h3><%= user.getUsername() %></h3>
             <p><%= user.getEmail() %></p>
+            <% if (isAdmin) { %>
+                <small>(Admin)</small>
+            <% } %>
         </div>
 
         <ul class="nav-menu">
@@ -157,6 +175,9 @@
         <div class="top-bar">
             <div class="page-title">
                 <h1>Budget</h1>
+                <% if (isAdmin) { %>
+                    <span class="admin-badge">Admin Mode</span>
+                <% } %>
             </div>
             <div class="top-actions">
                 <div class="notification-btn">
@@ -196,7 +217,7 @@
                         <div class="budget-header">
                             <div class="budget-category"><%= budget.getCategory() %></div>
                             <div class="budget-amount">$<%= String.format("%.2f", budget.getCurrentSpending()) %> / $<%= String.format("%.2f", budget.getBudgetAmount()) %></div>
-                            <div class="budget-actions">
+                            <div class="user-budget-actions">
                                 <button class="budget-action-btn edit-btn" 
                                     onclick="editBudget(<%= budget.getId() %>, '<%= budget.getCategory() %>', <%= budget.getBudgetAmount() %>, <%= budget.getCurrentSpending() %>)">
                                     <i class="fas fa-edit"></i>
@@ -372,10 +393,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Replace the old prompt-based add with modal
         document.getElementById('addBudgetBtn').addEventListener('click', openAddModal);
         
-        // Close modal when clicking outside
         window.addEventListener('click', function(event) {
             if (event.target.className === 'modal') {
                 closeAddModal();

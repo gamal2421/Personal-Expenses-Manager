@@ -333,20 +333,27 @@ public class Database {
             getTotalSavings(userId)
         );
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public static Budget getBudgetById(int id) throws SQLException {
+        Budget budget = null;
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, user_id, category, budget_amount, current_spending FROM budgets WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, id);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    budget = new Budget(
+                        rs.getInt("id"),
+                        rs.getString("category"),
+                        rs.getDouble("budget_amount"),
+                        rs.getDouble("current_spending")
+                    );
+                    // Assuming you add userId to your Budget model
+                    budget.setUserId(rs.getInt("user_id"));
+                }
+            }
+        }
+        return budget;
+    }
 // Budget-related methods in Database class
 public static boolean addBudget(int userId, String category, double budgetAmount, double currentSpending) {
     try (Connection conn = getConnection();
@@ -487,6 +494,59 @@ public static List<SavingGoal> getSavingGoals(int userId) {
     }
     return goals;
 }
+
+public static Map<String, Double> getAverageBudgetsByCategory() {
+    Map<String, Double> averages = new HashMap<>();
+    try (Connection conn = getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery("SELECT category, AVG(budget_amount) as avg_amount " +
+                                         "FROM budgets " +
+                                         "GROUP BY category")) {
+        while (rs.next()) {
+            averages.put(rs.getString("category"), rs.getDouble("avg_amount"));
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return averages;
+}
+public static boolean isAdmin(int userId) {
+    try (Connection conn = getConnection()) {
+        String sql = "SELECT isadmin FROM users WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBoolean(1);
+            }
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error checking admin status", e);
+    }
+    return false;
+}
+
+public static List<User> getAllUsers() {
+    List<User> users = new ArrayList<>();
+    try (Connection conn = getConnection()) {
+        String sql = "SELECT id, username, email FROM users";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                users.add(new User(
+                    rs.getInt("id"),
+                    rs.getString("username"),
+                    rs.getString("email")
+                ));
+            }
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error fetching users", e);
+    }
+    return users;
+}
+
+
 // Add these methods to your Database class
 
 public static double getCurrentMonthIncome(int userId) {
@@ -551,6 +611,43 @@ public static List<Map<String, Object>> getAllIncomeSources(int userId) {
         logger.log(Level.SEVERE, "Error fetching income sources", e);
     }
     return incomeSources;
+}
+
+
+
+// Get categories - now returns all categories since they're global
+public static List<Category> getCategories() {
+    List<Category> categories = new ArrayList<>();
+    try (Connection conn = getConnection()) {
+        String sql = "SELECT id, name FROM categories";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                categories.add(new Category(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    0 // No user_id needed
+                ));
+            }
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error fetching categories", e);
+    }
+    return categories;
+}
+
+// Add category - no user_id needed
+public static boolean addCategory(String categoryName) {
+    try (Connection conn = getConnection()) {
+        String sql = "INSERT INTO categories (name) VALUES (?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, categoryName);
+            return stmt.executeUpdate() > 0;
+        }
+    } catch (SQLException e) {
+        logger.log(Level.SEVERE, "Error adding category", e);
+        return false;
+    }
 }
 
 public static List<Map<String, Object>> getAllBudgets(int userId) {

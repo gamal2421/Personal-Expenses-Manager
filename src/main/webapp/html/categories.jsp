@@ -6,13 +6,14 @@
     // Check if the user is logged in
     String userEmail = (String) session.getAttribute("userEmail");
     if (userEmail == null) {
-        response.sendRedirect("login.jsp");  // Redirect to login if not logged in
-        return;  // Ensure no further processing happens
+        response.sendRedirect("login.jsp");
+        return;
     }
 
     int userId = Database.getUserIdByEmail(userEmail);
     User user = Database.getUserInfo(userId);
-    List<Category> categories = Database.getCategories(userId);
+    List<Category> categories = Database.getCategories(); // Changed to get all categories
+    boolean isAdmin = Database.isAdmin(userId);
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,6 +24,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="../css/categories.css">
+    <style>
+        .admin-only {
+            display: none;
+        }
+        <% if (isAdmin) { %>
+            .admin-only {
+                display: block;
+            }
+        <% } %>
+    </style>
 </head>
 <body>
 <div class="main-page">
@@ -34,6 +45,9 @@
             </div>
             <h3><%= user.getUsername() %></h3>
             <p><%= user.getEmail() %></p>
+            <% if (isAdmin) { %>
+                <small>(Admin)</small>
+            <% } %>
         </div>
 
         <ul class="nav-menu">
@@ -52,6 +66,9 @@
         <div class="top-bar">
             <div class="page-title">
                 <h1>Categories</h1>
+                <% if (isAdmin) { %>
+                    <small class="admin-badge">Admin Mode</small>
+                <% } %>
             </div>
             <div class="top-actions">
                 <div class="notification-btn">
@@ -67,7 +84,9 @@
         <div class="categories-content">
             <div class="filter-add-section">
                 <input type="text" class="filter-input" placeholder="Filter categories...">
-                <button class="add-btn" id="addCategoryBtn">+</button>
+                <% if (isAdmin) { %>
+                    <button class="add-btn admin-only" id="addCategoryBtn">+ Add Category</button>
+                <% } %>
             </div>
 
             <div class="categories-grid">
@@ -75,14 +94,16 @@
                     <div class="category-card">
                         <div class="category-header">
                             <span class="category-name"><%= category.getName() %></span>
-                            <div class="category-actions">
-                                <button class="action-btn edit-btn" onclick="editCategory('<%= category.getId() %>', '<%= category.getName() %>')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn delete-btn" onclick="deleteCategory('<%= category.getId() %>')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                            <% if (isAdmin) { %>
+                                <div class="category-actions admin-only">
+                                    <button class="action-btn edit-btn" onclick="editCategory('<%= category.getId() %>', '<%= category.getName() %>')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteCategory('<%= category.getId() %>')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 <% } %>
@@ -93,8 +114,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-
-
         // Profile click event
         document.getElementById('profile-section').addEventListener('click', function() {
             document.getElementById('profileOverlay').style.display = 'block';
@@ -113,8 +132,6 @@
             document.getElementById('settingsCard').style.display = 'block';
         });
 
-
-
         // Filter categories
         document.querySelector('.filter-input').addEventListener('input', function() {
             const filterValue = this.value.toLowerCase();
@@ -125,10 +142,9 @@
         });
     });
 
-   function deleteCategory(categoryId) {
-    // Confirm before deleting
-    if (confirm('Are you sure you want to delete this category?')) {
-        // Send DELETE request to the CategoryDeleteServlet
+    function deleteCategory(categoryId) {
+        if (!confirm('Are you sure you want to delete this category?')) return;
+        
         fetch('../deleteCategory', {
             method: 'POST',
             headers: {
@@ -136,78 +152,87 @@
             },
             body: 'categoryId=' + categoryId
         })
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text();
+        })
         .then(data => {
             if (data === "Success") {
                 alert("Category deleted successfully!");
-                location.reload(); // Reload the page to reflect the changes
+                location.reload();
             } else {
-                alert("Failed to delete category.");
+                alert("Failed to delete category: " + data);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Error deleting category.");
+            alert("Error deleting category. Please check console for details.");
         });
     }
-}
 
-function addnewcategory() {
-    const newCategoryName = prompt('Enter new category name:');
-    if (newCategoryName && newCategoryName.trim()) {
+    function addnewcategory() {
+        const newCategoryName = prompt('Enter new category name:');
+        if (!newCategoryName || !newCategoryName.trim()) return;
+        
         fetch('../addCategory', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: 'categoryName=' + encodeURIComponent(newCategoryName)
+            body: 'categoryName=' + encodeURIComponent(newCategoryName.trim())
         })
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text();
+        })
         .then(data => {
             if (data === "Success") {
                 alert("Category added successfully!");
-                location.reload(); // Reload the page to reflect the changes
+                location.reload();
             } else {
-                alert("Failed to add category.");
+                alert("Failed to add category: " + data);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Error adding category.");
+            alert("Error adding category. Please check console for details.");
         });
     }
-}
-console.log("ss");
-document.getElementById('addCategoryBtn').addEventListener('click', addnewcategory);
 
-
-
-function editCategory(categoryId, oldName) {
-    const newName = prompt('Edit category name:', oldName);
-    if (newName && newName.trim()) {
+    function editCategory(categoryId, oldName) {
+        const newName = prompt('Edit category name:', oldName);
+        if (!newName || !newName.trim() || newName === oldName) return;
+        
         fetch('../editCategory', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: 'categoryId=' + categoryId + '&newName=' + encodeURIComponent(newName)
+            body: 'categoryId=' + categoryId + '&newName=' + encodeURIComponent(newName.trim())
         })
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text();
+        })
         .then(data => {
             if (data === "Success") {
                 alert("Category updated successfully!");
-                location.reload(); // Reload the page to reflect the changes
+                location.reload();
             } else {
-                alert("Failed to update category.");
+                alert("Failed to update category: " + data);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Error updating category.");
+            alert("Error updating category. Please check console for details.");
         });
     }
-}
 
+    // Only add event listener if the button exists (for admin)
+    const addBtn = document.getElementById('addCategoryBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addnewcategory);
+    }
 </script>
 </body>
 </html>

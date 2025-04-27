@@ -9,15 +9,24 @@
     if (email != null && password != null) {
         // Validate the credentials
         if (Database.isValidUser(email, password)) {
-            // Set session attributes for the logged-in user
-            session.setAttribute("userEmail", email);  
-            session.setAttribute("userName", Database.getUserNameByEmail(email)); 
+            // Get user ID
+            int userId = Database.getUserIdByEmail(email);
+            boolean isAdmin = Database.isAdmin(userId);
             
-            // Redirect to the dashboard
-            response.sendRedirect("dashboard.jsp");   
-            return;  // Ensure no further processing happens after redirection
+            // Set session attributes
+            session.setAttribute("userEmail", email);  
+            session.setAttribute("userName", Database.getUserNameByEmail(email));
+            session.setAttribute("userId", userId);
+            session.setAttribute("isAdmin", isAdmin);
+            
+            // Redirect based on user role
+            if (isAdmin) {
+                response.sendRedirect("admin-dashboard.jsp");   
+            } else {
+                response.sendRedirect("dashboard.jsp");
+            }
+            return;
         } else {
-            // Set an error message if credentials are invalid
             errorMsg = "Invalid email or password.";
         }
     }

@@ -5,7 +5,7 @@ public class Budget {
     private String category;
     private double budgetAmount;
     private double currentSpending;
-
+    private int userId;  
     public Budget(int id, String category, double budgetAmount, double currentSpending) {
         this.id = id;
         this.category = category;
@@ -23,4 +23,8 @@ public class Budget {
     public void setCategory(String category) { this.category = category; }
     public void setBudgetAmount(double budgetAmount) { this.budgetAmount = budgetAmount; }
     public void setCurrentSpending(double currentSpending) { this.currentSpending = currentSpending; }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 }
