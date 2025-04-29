@@ -89,13 +89,10 @@
     <div id="sidebar">
         <div id="profile-section">
             <div class="profile-image">
-                <i class="fas fa-user"></i>
+                <img src="https://e7.pngegg.com/pngimages/442/16/png-clipart-computer-icons-man-icon-logo-silhouette.png" alt="Profile">
             </div>
             <h3><%= user.getUsername() %></h3>
             <p><%= user.getEmail() %></p>
-            <% if (isAdmin) { %>
-                <span class="admin-badge">Admin</span>
-            <% } %>
         </div>
         
         <ul class="nav-menu">
