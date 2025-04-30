@@ -50,16 +50,15 @@
             <% } %>
         </div>
 
-    
-<ul class="nav-menu">
-    <li class="nav-item"><a href="dashboard.jsp"><i class="icons fas fa-chart-pie"></i> Dashboard</a></li>
-    <li class="nav-item"><a href="Financials goals.jsp"><i class="icons fas fa-wallet"></i> Financials</a></li>
-    <li class="nav-item"><a href="reports.jsp"><i class="icons fas fa-file-alt"></i> Reports</a></li>
-    <li class="nav-item"><a href="budget.jsp"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
-    <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
-    <li class="nav-item"><a href="categories.jsp"><i class="icons fas fa-tags"></i> Categories</a></li>
-    <li class="nav-item"><a href="expenses.jsp"><i class="icons fas fa-shopping-cart"></i> Expenses</a></li>
-</ul>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="dashboard.jsp"><i class="icons fas fa-chart-pie"></i> Dashboard</a></li>
+            <li class="nav-item"><a href="Financials goals.jsp"><i class="icons fas fa-wallet"></i> Financials</a></li>
+            <li class="nav-item"><a href="reports.jsp"><i class="icons fas fa-file-alt"></i> Reports</a></li>
+            <li class="nav-item"><a href="budget.jsp"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
+            <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
+            <li class="nav-item"><a href="categories.jsp"><i class="icons fas fa-tags"></i> Categories</a></li>
+            <li class="nav-item"><a href="expenses.jsp"><i class="icons fas fa-shopping-cart"></i> Expenses</a></li>
+        </ul>
     </div>
 
     <!-- Main Content -->
@@ -85,7 +84,7 @@
         <!-- Categories Content -->
         <div class="categories-content">
             <div class="filter-add-section">
-                <input type="text" class="filter-input" placeholder="Filter categories...">
+                <input type="text" class="filter-input" placeholder="Filter categories..." id="filterInput">
                 <% if (isAdmin) { %>
                     <button class="add-btn admin-only" id="addCategoryBtn">+ Add Category</button>
                 <% } %>
@@ -123,25 +122,34 @@
         });
 
         // Close popups when clicking overlay
-        document.getElementById('profileOverlay').addEventListener('click', function() {
+        document.getElementById('profileOverlay')?.addEventListener('click', function() {
             this.style.display = 'none';
             document.getElementById('profileCard').style.display = 'none';
         });
 
         // Settings button click
-        document.querySelector('.settings-btn').addEventListener('click', function() {
+        document.querySelector('.settings-btn')?.addEventListener('click', function() {
             document.getElementById('settingsOverlay').style.display = 'block';
             document.getElementById('settingsCard').style.display = 'block';
         });
 
         // Filter categories
-        document.querySelector('.filter-input').addEventListener('input', function() {
-            const filterValue = this.value.toLowerCase();
-            document.querySelectorAll('.category-card').forEach(card => {
-                const name = card.querySelector('.category-name').textContent.toLowerCase();
-                card.style.display = name.includes(filterValue) ? 'flex' : 'none';
+        const filterInput = document.getElementById('filterInput');
+        if (filterInput) {
+            filterInput.addEventListener('input', function() {
+                const filterValue = this.value.toLowerCase();
+                document.querySelectorAll('.category-card').forEach(card => {
+                    const name = card.querySelector('.category-name').textContent.toLowerCase();
+                    card.style.display = name.includes(filterValue) ? 'flex' : 'none';
+                });
             });
-        });
+        }
+
+        // Add category button (only for admin)
+        const addBtn = document.getElementById('addCategoryBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', addNewCategory);
+        }
     });
 
     function deleteCategory(categoryId) {
@@ -172,7 +180,7 @@
         });
     }
 
-    function addnewcategory() {
+    function addNewCategory() {
         const newCategoryName = prompt('Enter new category name:');
         if (!newCategoryName || !newCategoryName.trim()) return;
         
@@ -228,12 +236,6 @@
             console.error('Error:', error);
             alert("Error updating category. Please check console for details.");
         });
-    }
-
-    // Only add event listener if the button exists (for admin)
-    const addBtn = document.getElementById('addCategoryBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', addnewcategory);
     }
 </script>
 </body>
