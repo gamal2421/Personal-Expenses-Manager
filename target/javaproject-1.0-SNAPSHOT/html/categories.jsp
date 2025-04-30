@@ -28,6 +28,7 @@
         .admin-only {
             display: none;
         }
+        
         <% if (isAdmin) { %>
             .admin-only {
                 display: block;
