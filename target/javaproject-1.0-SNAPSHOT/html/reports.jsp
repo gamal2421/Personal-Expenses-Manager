@@ -133,31 +133,6 @@
                     </div>
                 </div>
             </div>
-
-            <h3 class="section-header"><i class="fas fa-tags"></i> Categories</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Category Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (categories != null && !categories.isEmpty()) { 
-                        for (Map<String, Object> category : categories) { %>
-                    <tr>
-                        <td><%= category.get("id") %></td>
-                        <td><%= category.get("name") %></td>
-                    </tr>
-                    <% } 
-                    } else { %>
-                    <tr>
-                        <td colspan="2" class="empty-state">No categories found</td>
-                    </tr>
-                    <% } %>
-                </tbody>
-            </table>
-
             <h3 class="section-header"><i class="fas fa-hand-holding-usd"></i> Income Sources</h3>
             <table>
                 <thead>
