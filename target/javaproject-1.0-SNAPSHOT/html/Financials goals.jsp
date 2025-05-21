@@ -65,10 +65,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Expenses Manager - Financial Goals</title>
     
-<link rel="icon" type="image/png" href="/icons/icon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/icon.png">
+    <!-- Apple Touch Icon (iOS) -->
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<!-- Android Chrome -->
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+<!-- Optional: Web Manifest for PWA -->
+<link rel="manifest" href="/icons/site.webmanifest">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="../css/budget.css">
