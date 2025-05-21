@@ -8,7 +8,7 @@ the url for the project : https://personal-production-21dd.up.railway.app/
 - Database connection with PostgreSQL
 - JSP-based frontend
 - Maven for dependency management
-- Docker support (if applicable)
+- Docker support
 
 ## Prerequisites
 Ensure you have the following installed:
@@ -20,10 +20,7 @@ Ensure you have the following installed:
 ## Setup Instructions
 
 ### 1️⃣ Clone the Repository
-```sh
-git clone https://github.com/your-repo/java-web-app.git
-cd java-web-app
-```
+
 
 ### 2️⃣ Configure Database
 Create a PostgreSQL database and user:
