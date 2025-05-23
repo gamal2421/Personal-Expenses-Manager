@@ -151,7 +151,6 @@
                         <th>ID</th>
                         <th>Source</th>
                         <th>Amount</th>
-                        <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -161,12 +160,11 @@
                         <td><%= income.getId() %></td>
                         <td><%= income.getSource() %></td>
                         <td>$<%= String.format("%.2f", income.getAmount()) %></td>
-                        <td>N/A</td>
                     </tr>
                     <% } 
                     } else { %>
                     <tr>
-                        <td colspan="4" class="empty-state">No income sources found</td>
+                        <td colspan="3" class="empty-state">No income sources found</td>
                     </tr>
                     <% } %>
                 </tbody>

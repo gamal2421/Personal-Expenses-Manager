@@ -16,6 +16,8 @@ import javawork.personalexp.models.Expense;
 import javawork.personalexp.models.Income;
 import javawork.personalexp.models.SavingGoal;
 import javawork.personalexp.models.User;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class Database {
     // Database connection details
@@ -23,22 +25,28 @@ public class Database {
     private static final String USER = "avnadmin";
     private static final String PASSWORD = "AVNS_v6Of1LG2FuojSos4Hvk";
     private static final Logger logger = Logger.getLogger(Database.class.getName());
+    private static HikariDataSource dataSource;
 
     static {
         try {
             Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            logger.log(Level.SEVERE, "PostgreSQL JDBC Driver not found", e);
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(URL);
+            config.setUsername(USER);
+            config.setPassword(PASSWORD);
+            config.setMaximumPoolSize(10); // Tune as needed
+            config.setMinimumIdle(2);
+            config.setIdleTimeout(30000);
+            config.setConnectionTimeout(30000);
+            config.setMaxLifetime(1800000);
+            dataSource = new HikariDataSource(config);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to initialize HikariCP DataSource", e);
         }
     }
 
     public static Connection getConnection() throws SQLException {
-        try {
-            return DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Database connection failed", e);
-            throw e;
-        }
+        return dataSource.getConnection();
     }
 
     // User-related methods
@@ -144,6 +152,26 @@ public class Database {
         return user;
     }
 
+    // Helper to extract user-friendly error messages from SQLExceptions
+    private static String getFriendlySqlError(SQLException e) {
+        String msg = e.getMessage();
+        if (msg == null) return null;
+        if (msg.contains("Current spending cannot exceed budget amount")) {
+            return "You have exceeded your budget for this category.";
+        }
+        if (msg.contains("duplicate key value") || msg.contains("unique constraint")) {
+            return "This entry already exists.";
+        }
+        if (msg.contains("violates foreign key constraint")) {
+            return "Invalid reference to another record.";
+        }
+        if (msg.contains("null value in column")) {
+            return "A required field is missing.";
+        }
+        // Add more as needed
+        return null;
+    }
+
     public static boolean addExpense(int userId, int categoryId, double amount, String description) throws SQLException {
         Connection conn = null;
         try {
@@ -221,6 +249,8 @@ public class Database {
                     logger.log(Level.SEVERE, "Error during rollback", ex);
                 }
             }
+            String friendly = getFriendlySqlError(e);
+            if (friendly != null) throw new SQLException(friendly, e);
             throw e;
         } finally {
             if (conn != null) {
@@ -233,10 +263,6 @@ public class Database {
             }
         }
     }
-
-
-
-
 
     // Income-related methods
     public static boolean addIncome(int userId, double amount, String source) {
@@ -337,7 +363,12 @@ public class Database {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error adding category for user: " + userId, e);
+            String friendly = getFriendlySqlError(e);
+            if (friendly != null) {
+                logger.log(Level.WARNING, friendly);
+            } else {
+                logger.log(Level.SEVERE, "Error adding category for user: " + userId, e);
+            }
             return false;
         }
     }
@@ -463,699 +494,711 @@ public class Database {
         );
     }
 
-public static List<Budget> getBudgets(int userId) {
-    List<Budget> budgets = new ArrayList<>();
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "SELECT id, category_id, category, budget_amount, current_spending, " +
-             "created_at, updated_at FROM budgets WHERE user_id = ? ORDER BY created_at DESC")) {
-        
-        stmt.setInt(1, userId);
-        ResultSet rs = stmt.executeQuery();
-        
-        while (rs.next()) {
-            Budget budget = new Budget();
-            budget.setId(rs.getInt("id"));
-            budget.setUserId(userId);
-            budget.setCategoryId(rs.getInt("category_id"));
-            budget.setCategory(rs.getString("category"));
-            budget.setBudgetAmount(rs.getDouble("budget_amount"));
-            budget.setCurrentSpending(rs.getDouble("current_spending"));
-            budget.setCreatedAt(rs.getString("created_at"));
-            budget.setUpdatedAt(rs.getString("updated_at"));
-            budgets.add(budget);
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching budgets", e);
-    }
-    return budgets;
-}
-
-public static boolean updateBudget(int id, int categoryId, double budgetAmount, double currentSpending) {
-    try (Connection conn = getConnection()) {
-        // Get category name
-        String categoryName = "";
-        String getNameSql = "SELECT name FROM categories WHERE id = ?";
-        try (PreparedStatement getNameStmt = conn.prepareStatement(getNameSql)) {
-            getNameStmt.setInt(1, categoryId);
-            ResultSet rs = getNameStmt.executeQuery();
-            if (rs.next()) {
-                categoryName = rs.getString("name");
-            } else {
-                return false; // Category not found
-            }
-        }
-
-        // Update budget
-        String updateSql = "UPDATE budgets SET category_id = ?, category = ?, " +
-                         "budget_amount = ?, current_spending = ?, updated_at = CURRENT_TIMESTAMP " +
-                         "WHERE id = ?";
-        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-            updateStmt.setInt(1, categoryId);
-            updateStmt.setString(2, categoryName);
-            updateStmt.setDouble(3, budgetAmount);
-            updateStmt.setDouble(4, currentSpending);
-            updateStmt.setInt(5, id);
+    public static List<Budget> getBudgets(int userId) {
+        List<Budget> budgets = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT id, category_id, category, budget_amount, current_spending, " +
+                 "created_at, updated_at FROM budgets WHERE user_id = ? ORDER BY created_at DESC")) {
             
-            return updateStmt.executeUpdate() > 0;
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error updating budget", e);
-        return false;
-    }
-}
-
-public static boolean addBudget(int userId, int categoryId, double budgetAmount, double currentSpending) {
-    try (Connection conn = getConnection()) {
-        // First get the category name
-        String categoryName = "";
-        String getNameSql = "SELECT name FROM categories WHERE id = ?";
-        try (PreparedStatement getNameStmt = conn.prepareStatement(getNameSql)) {
-            getNameStmt.setInt(1, categoryId);
-            ResultSet rs = getNameStmt.executeQuery();
-            if (rs.next()) {
-                categoryName = rs.getString("name");
-            } else {
-                return false; // Category not found
-            }
-        }
-
-        // Then insert the budget
-        String insertSql = "INSERT INTO budgets (user_id, category_id, category, budget_amount, current_spending) " +
-                         "VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-            insertStmt.setInt(1, userId);
-            insertStmt.setInt(2, categoryId);
-            insertStmt.setString(3, categoryName);
-            insertStmt.setDouble(4, budgetAmount);
-            insertStmt.setDouble(5, currentSpending);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
             
-            return insertStmt.executeUpdate() > 0;
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error adding budget", e);
-        return false;
-    }
-}
-
-public static boolean deleteBudget(int id) {
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "DELETE FROM budgets WHERE id = ?")) {
-        
-        stmt.setInt(1, id);
-        return stmt.executeUpdate() > 0;
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error deleting budget", e);
-        return false;
-    }
-}
-
-public static boolean addSavingGoal(int userId, String title, String description, 
-                                  double targetAmount, Date targetDate, double currentAmount) {
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "INSERT INTO savings_goals (user_id, title, description, target_amount, " +
-             "target_date, current_amount) VALUES (?, ?, ?, ?, ?, ?)")) {
-        
-        stmt.setInt(1, userId);
-        stmt.setString(2, title);
-        stmt.setString(3, description);
-        stmt.setDouble(4, targetAmount);
-        stmt.setDate(5, targetDate);
-        stmt.setDouble(6, currentAmount);
-        
-        return stmt.executeUpdate() > 0;
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error adding saving goal", e);
-        return false;
-    }
-}
-
-public static boolean updateSavingGoal(int id, String title, String description, 
-                                     double targetAmount, Date targetDate, double currentAmount) {
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "UPDATE savings_goals SET title = ?, description = ?, target_amount = ?, " +
-             "target_date = ?, current_amount = ? WHERE id = ?")) {
-        
-        stmt.setString(1, title);
-        stmt.setString(2, description);
-        stmt.setDouble(3, targetAmount);
-        stmt.setDate(4, targetDate);
-        stmt.setDouble(5, currentAmount);
-        stmt.setInt(6, id);
-        
-        return stmt.executeUpdate() > 0;
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error updating saving goal", e);
-        return false;
-    }
-}
-
-public static List<SavingGoal> getSavingGoals(int userId) {
-    List<SavingGoal> goals = new ArrayList<>();
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "SELECT id, title, description, target_amount, target_date, " +
-             "current_amount, achieved FROM savings_goals WHERE user_id = ?")) {
-        
-        stmt.setInt(1, userId);
-        ResultSet rs = stmt.executeQuery();
-        
-        while (rs.next()) {
-            goals.add(new SavingGoal(
-                rs.getInt("id"),
-                rs.getString("title"),
-                rs.getString("description"),
-                rs.getDouble("target_amount"),
-                rs.getDouble("current_amount"),
-                rs.getDate("target_date"),
-                rs.getBoolean("achieved")
-            ));
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching saving goals", e);
-    }
-    return goals;
-}
-
-public static Map<String, Double> getAverageBudgetsByCategory() {
-    Map<String, Double> averages = new HashMap<>();
-    try (Connection conn = getConnection();
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT category, AVG(budget_amount) as avg_amount " +
-                                         "FROM budgets " +
-                                         "GROUP BY category")) {
-        while (rs.next()) {
-            averages.put(rs.getString("category"), rs.getDouble("avg_amount"));
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-    return averages;
-}
-
-public static boolean isAdmin(int userId) {
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT isadmin FROM users WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getBoolean(1);
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error checking admin status", e);
-    }
-    return false;
-}
-
-public static List<User> getAllUsers() {
-    List<User> users = new ArrayList<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT id, username, email FROM users";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                users.add(new User(
-                    rs.getInt("id"),
-                    rs.getString("username"),
-                    rs.getString("email")
-                ));
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching users", e);
-    }
-    return users;
-}
-
-public static double getCurrentMonthIncome(int userId) {
-    double totalIncome = 0;
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT COALESCE(SUM(amount), 0) FROM income_sources " +
-                    "WHERE user_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                totalIncome = rs.getDouble(1);
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error calculating current month income", e);
-    }
-    return totalIncome;
-}
-
-public static List<Map<String, Object>> getAllCategories(int userId) {
-    List<Map<String, Object>> categories = new ArrayList<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT id, name FROM categories WHERE user_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> category = new HashMap<>();
-                category.put("id", rs.getInt("id"));
-                category.put("name", rs.getString("name"));
-                categories.add(category);
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching categories", e);
-    }
-    return categories;
-}
-
-public static List<Map<String, Object>> getAllIncomeSources(int userId) {
-    List<Map<String, Object>> incomeSources = new ArrayList<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT id, source_name, amount, created_at FROM income_sources WHERE user_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> income = new HashMap<>();
-                income.put("id", rs.getInt("id"));
-                income.put("source", rs.getString("source_name"));
-                income.put("amount", rs.getDouble("amount"));
-                income.put("date", rs.getDate("created_at"));
-                incomeSources.add(income);
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching income sources", e);
-    }
-    return incomeSources;
-}
-
-public static List<Category> getCategories() {
-    List<Category> categories = new ArrayList<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT id, name FROM categories";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                categories.add(new Category(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    0 // No user_id needed
-                ));
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching categories", e);
-    }
-    return categories;
-}
-
-public static boolean addCategory(String categoryName) {
-    try (Connection conn = getConnection()) {
-        String sql = "INSERT INTO categories (name) VALUES (?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, categoryName);
-            return stmt.executeUpdate() > 0;
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error adding category", e);
-        return false;
-    }
-}
-
-public static List<Map<String, Object>> getAllBudgets(int userId) {
-    List<Map<String, Object>> budgets = new ArrayList<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT id, category, budget_amount, current_spending, " +
-                    "created_at, updated_at FROM budgets WHERE user_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> budget = new HashMap<>();
-                budget.put("id", rs.getInt("id"));
-                budget.put("category", rs.getString("category")); // Direct string category
-                budget.put("budget_amount", rs.getDouble("budget_amount"));
-                budget.put("current_spending", rs.getDouble("current_spending"));
-                budget.put("created_at", rs.getDate("created_at"));
-                budget.put("updated_at", rs.getDate("updated_at"));
+                Budget budget = new Budget();
+                budget.setId(rs.getInt("id"));
+                budget.setUserId(userId);
+                budget.setCategoryId(rs.getInt("category_id"));
+                budget.setCategory(rs.getString("category"));
+                budget.setBudgetAmount(rs.getDouble("budget_amount"));
+                budget.setCurrentSpending(rs.getDouble("current_spending"));
+                budget.setCreatedAt(rs.getString("created_at"));
+                budget.setUpdatedAt(rs.getString("updated_at"));
                 budgets.add(budget);
             }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching budgets", e);
         }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching budgets", e);
+        return budgets;
     }
-    return budgets;
-}
 
-public static List<Map<String, Object>> getAllSavingsGoals(int userId) {
-    List<Map<String, Object>> goals = new ArrayList<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT id, title, target_amount, current_amount, target_date, " +
-                    "achieved, description, created_at FROM savings_goals WHERE user_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> goal = new HashMap<>();
-                goal.put("id", rs.getInt("id"));
-                goal.put("title", rs.getString("title"));
-                goal.put("target_amount", rs.getDouble("target_amount"));
-                goal.put("current_amount", rs.getDouble("current_amount"));
-                goal.put("target_date", rs.getDate("target_date"));
-                goal.put("achieved", rs.getBoolean("achieved"));
-                goal.put("description", rs.getString("description"));
-                goal.put("created_at", rs.getDate("created_at"));
-                goals.add(goal);
+    public static boolean updateBudget(int id, int categoryId, double budgetAmount, double currentSpending) {
+        try (Connection conn = getConnection()) {
+            // Get category name
+            String categoryName = "";
+            String getNameSql = "SELECT name FROM categories WHERE id = ?";
+            try (PreparedStatement getNameStmt = conn.prepareStatement(getNameSql)) {
+                getNameStmt.setInt(1, categoryId);
+                ResultSet rs = getNameStmt.executeQuery();
+                if (rs.next()) {
+                    categoryName = rs.getString("name");
+                } else {
+                    return false; // Category not found
+                }
             }
+
+            // Update budget
+            String updateSql = "UPDATE budgets SET category_id = ?, category = ?, " +
+                             "budget_amount = ?, current_spending = ?, updated_at = CURRENT_TIMESTAMP " +
+                             "WHERE id = ?";
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                updateStmt.setInt(1, categoryId);
+                updateStmt.setString(2, categoryName);
+                updateStmt.setDouble(3, budgetAmount);
+                updateStmt.setDouble(4, currentSpending);
+                updateStmt.setInt(5, id);
+                
+                return updateStmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            String friendly = getFriendlySqlError(e);
+            if (friendly != null) {
+                logger.log(Level.WARNING, friendly);
+            } else {
+                logger.log(Level.SEVERE, "Error updating budget", e);
+            }
+            return false;
         }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching savings goals", e);
     }
-    return goals;
-}
 
-public static Map<String, Object> getMonthlyReport(int userId, int year, int month) {
-    Map<String, Object> report = new HashMap<>();
-    List<Map<String, Object>> categories = new ArrayList<>(); // Initialize empty list
-    report.put("categories", categories);
-    report.put("total_income", 0.0);
-    report.put("total_expenses", 0.0);
-    report.put("total_savings", 0.0);
-    report.put("transaction_count", 0);
-    
-    try (Connection conn = getConnection()) {
-        // Get income data
-        String incomeSql = "SELECT COALESCE(SUM(amount), 0) AS total_income " +
-                         "FROM income_sources " +
-                         "WHERE user_id = ? AND EXTRACT(YEAR FROM created_at) = ? " +
-                         "AND EXTRACT(MONTH FROM created_at) = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(incomeSql)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, year);
-            stmt.setInt(3, month);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                report.put("total_income", rs.getDouble("total_income"));
+    public static boolean addBudget(int userId, int categoryId, double budgetAmount, double currentSpending) {
+        try (Connection conn = getConnection()) {
+            // First get the category name
+            String categoryName = "";
+            String getNameSql = "SELECT name FROM categories WHERE id = ?";
+            try (PreparedStatement getNameStmt = conn.prepareStatement(getNameSql)) {
+                getNameStmt.setInt(1, categoryId);
+                ResultSet rs = getNameStmt.executeQuery();
+                if (rs.next()) {
+                    categoryName = rs.getString("name");
+                } else {
+                    return false; // Category not found
+                }
             }
+
+            // Then insert the budget
+            String insertSql = "INSERT INTO budgets (user_id, category_id, category, budget_amount, current_spending) " +
+                             "VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setInt(1, userId);
+                insertStmt.setInt(2, categoryId);
+                insertStmt.setString(3, categoryName);
+                insertStmt.setDouble(4, budgetAmount);
+                insertStmt.setDouble(5, currentSpending);
+                
+                return insertStmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            String friendly = getFriendlySqlError(e);
+            if (friendly != null) {
+                logger.log(Level.WARNING, friendly);
+            } else {
+                logger.log(Level.SEVERE, "Error adding budget", e);
+            }
+            return false;
         }
+    }
 
-        // Get expense data by category
-        String expenseSql = "SELECT c.name AS category, SUM(b.current_spending) AS amount " +
-                          "FROM budgets b " +
-                          "JOIN categories c ON b.category_id = c.id " +
-                          "WHERE b.user_id = ? AND EXTRACT(YEAR FROM b.created_at) = ? " +
-                          "AND EXTRACT(MONTH FROM b.created_at) = ? " +
-                          "GROUP BY c.name " +
-                          "ORDER BY amount DESC";
-        try (PreparedStatement stmt = conn.prepareStatement(expenseSql)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, year);
-            stmt.setInt(3, month);
-            ResultSet rs = stmt.executeQuery();
-            double totalExpenses = 0;
-            while (rs.next()) {
-                Map<String, Object> category = new HashMap<>();
-                category.put("name", rs.getString("category"));
-                double amount = rs.getDouble("amount");
-                category.put("amount", amount);
-                categories.add(category);
-                totalExpenses += amount;
-            }
-            report.put("total_expenses", totalExpenses);
+    public static boolean deleteBudget(int id) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "DELETE FROM budgets WHERE id = ?")) {
             
-            // Calculate percentages
-            for (Map<String, Object> category : categories) {
-                double amount = (Double) category.get("amount");
-                double percentage = totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0;
-                category.put("percentage", percentage);
-            }
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting budget", e);
+            return false;
         }
-
-        // Get savings data
-        String savingsSql = "SELECT COALESCE(SUM(current_amount), 0) AS total_savings " +
-                          "FROM savings_goals " +
-                          "WHERE user_id = ? AND EXTRACT(YEAR FROM created_at) = ? " +
-                          "AND EXTRACT(MONTH FROM created_at) = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(savingsSql)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, year);
-            stmt.setInt(3, month);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                report.put("total_savings", rs.getDouble("total_savings"));
-            }
-        }
-
-        // Get transaction count
-        String countSql = "SELECT COUNT(*) AS transaction_count " +
-                         "FROM budgets " +
-                         "WHERE user_id = ? AND EXTRACT(YEAR FROM created_at) = ? " +
-                         "AND EXTRACT(MONTH FROM created_at) = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(countSql)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, year);
-            stmt.setInt(3, month);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                report.put("transaction_count", rs.getInt("transaction_count"));
-            }
-        }
-
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error generating monthly report", e);
     }
-    return report;
-}
 
-public static double getCurrentMonthExpenses(int userId) {
-    double totalExpenses = 0;
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT COALESCE(SUM(amount), 0) FROM expenses " +
-                    "WHERE user_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public static boolean addSavingGoal(int userId, String title, String description, 
+                                      double targetAmount, Date targetDate, double currentAmount) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "INSERT INTO savings_goals (user_id, title, description, target_amount, " +
+                 "target_date, current_amount) VALUES (?, ?, ?, ?, ?, ?)")) {
+            
             stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                totalExpenses = rs.getDouble(1);
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error calculating current month expenses", e);
-    }
-    return totalExpenses;
-}
-
-public static Map<String, Double> getMonthlyExpenses(int userId) {
-    Map<String, Double> monthlyExpenses = new LinkedHashMap<>();
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT TO_CHAR(created_at, 'Mon') AS month, " +
-                    "COALESCE(SUM(amount), 0) AS total " +
-                    "FROM expenses " +
-                    "WHERE user_id = ? " +
-                    "AND created_at >= DATE_TRUNC('year', CURRENT_DATE) " +
-                    "GROUP BY month " +
-                    "ORDER BY MIN(created_at)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                monthlyExpenses.put(rs.getString("month"), rs.getDouble("total"));
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching monthly expenses", e);
-    }
-    return monthlyExpenses;
-}
-
-public static double getTotalSavingsProgress(int userId) {
-    double totalProgress = 0;
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT COALESCE(SUM(current_amount), 0) FROM savings_goals WHERE user_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                totalProgress = rs.getDouble(1);
-            }
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error calculating savings progress", e);
-    }
-    return totalProgress;
-}
-
-public static boolean updateExpense(int expenseId, int categoryId, double amount, String description) {
-    try (Connection conn = getConnection()) {
-        // First get the old expense to adjust the budget
-        Expense oldExpense = getExpenseById(expenseId);
-        if (oldExpense == null) return false;
-        
-        // Adjust the old budget
-        String adjustBudgetSql = "UPDATE budgets SET current_spending = current_spending - ? " +
-                               "WHERE user_id = ? AND category_id = ?";
-        try (PreparedStatement adjustStmt = conn.prepareStatement(adjustBudgetSql)) {
-            adjustStmt.setDouble(1, oldExpense.getAmount());
-            adjustStmt.setInt(2, oldExpense.getUserId());
-            adjustStmt.setInt(3, oldExpense.getCategoryId());
-            adjustStmt.executeUpdate();
-        }
-        
-        // Update the new budget
-        String updateBudgetSql = "UPDATE budgets SET current_spending = current_spending + ? " +
-                               "WHERE user_id = ? AND category_id = ?";
-        try (PreparedStatement updateStmt = conn.prepareStatement(updateBudgetSql)) {
-            updateStmt.setDouble(1, amount);
-            updateStmt.setInt(2, oldExpense.getUserId());
-            updateStmt.setInt(3, categoryId);
-            updateStmt.executeUpdate();
-        }
-        
-        // Update the expense
-        String updateExpenseSql = "UPDATE expenses SET category_id = ?, amount = ?, description = ? " +
-                                "WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(updateExpenseSql)) {
-            stmt.setInt(1, categoryId);
-            stmt.setDouble(2, amount);
+            stmt.setString(2, title);
             stmt.setString(3, description);
-            stmt.setInt(4, expenseId);
+            stmt.setDouble(4, targetAmount);
+            stmt.setDate(5, targetDate);
+            stmt.setDouble(6, currentAmount);
             
             return stmt.executeUpdate() > 0;
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error updating expense", e);
-        return false;
-    }
-}
-
-public static boolean deleteExpense(int expenseId) {
-    try (Connection conn = getConnection()) {
-        // First get the expense to adjust the budget
-        Expense expense = getExpenseById(expenseId);
-        if (expense == null) return false;
-        
-        // Adjust the budget
-        String adjustBudgetSql = "UPDATE budgets SET current_spending = current_spending - ? " +
-                               "WHERE user_id = ? AND category_id = ?";
-        try (PreparedStatement adjustStmt = conn.prepareStatement(adjustBudgetSql)) {
-            adjustStmt.setDouble(1, expense.getAmount());
-            adjustStmt.setInt(2, expense.getUserId());
-            adjustStmt.setInt(3, expense.getCategoryId());
-            adjustStmt.executeUpdate();
-        }
-        
-        // Delete the expense
-        String deleteExpenseSql = "DELETE FROM expenses WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(deleteExpenseSql)) {
-            stmt.setInt(1, expenseId);
-            return stmt.executeUpdate() > 0;
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error deleting expense", e);
-        return false;
-    }
-}
-
-public static Expense getExpenseById(int expenseId) {
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "SELECT e.id, e.user_id, e.category_id, c.name as category_name, " +
-             "e.amount, e.description, e.created_at " +
-             "FROM expenses e " +
-             "JOIN categories c ON e.category_id = c.id " +
-             "WHERE e.id = ?")) {
-        
-        stmt.setInt(1, expenseId);
-        ResultSet rs = stmt.executeQuery();
-        
-        if (rs.next()) {
-            return new Expense(
-                rs.getInt("id"),
-                rs.getInt("user_id"),
-                rs.getInt("category_id"),
-                rs.getString("category_name"),
-                rs.getDouble("amount"),
-                rs.getString("description"),
-                rs.getDate("created_at")
-            );
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching expense by ID", e);
-    }
-    return null;
-}
-
-public static List<Expense> getExpenses(int userId) {
-    List<Expense> expenses = new ArrayList<>();
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "SELECT e.id, e.user_id, e.category_id, c.name as category_name, " +
-             "e.amount, e.description, e.created_at " +
-             "FROM expenses e " +
-             "JOIN categories c ON e.category_id = c.id " +
-             "WHERE e.user_id = ? ORDER BY e.created_at DESC")) {
-        
-        stmt.setInt(1, userId);
-        ResultSet rs = stmt.executeQuery();
-        
-        while (rs.next()) {
-            expenses.add(new Expense(
-                rs.getInt("id"),
-                rs.getInt("user_id"),
-                rs.getInt("category_id"),
-                rs.getString("category_name"),
-                rs.getDouble("amount"),
-                rs.getString("description"),
-                rs.getDate("created_at")
-            ));
-        }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error fetching expenses", e);
-    }
-    return expenses;
-}
-
-
-
-
-
-
-
-
-
-
-
-public static boolean hasBudgetForCategory(int userId, int categoryId) {
-    try (Connection conn = getConnection()) {
-        String sql = "SELECT COUNT(*) FROM budgets WHERE user_id = ? AND category_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            stmt.setInt(2, categoryId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            String friendly = getFriendlySqlError(e);
+            if (friendly != null) {
+                logger.log(Level.WARNING, friendly);
+            } else {
+                logger.log(Level.SEVERE, "Error adding saving goal", e);
             }
+            return false;
         }
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error checking budget for category", e);
     }
-    return false;
-}
-public static boolean deleteSavingGoal(int id) {
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(
-             "DELETE FROM savings_goals WHERE id = ?")) {
-        
-        stmt.setInt(1, id);
-        return stmt.executeUpdate() > 0;
-    } catch (SQLException e) {
-        logger.log(Level.SEVERE, "Error deleting saving goal ID: " + id, e);
+
+    public static boolean updateSavingGoal(int id, String title, String description, 
+                                         double targetAmount, Date targetDate, double currentAmount) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "UPDATE savings_goals SET title = ?, description = ?, target_amount = ?, " +
+                 "target_date = ?, current_amount = ? WHERE id = ?")) {
+            
+            stmt.setString(1, title);
+            stmt.setString(2, description);
+            stmt.setDouble(3, targetAmount);
+            stmt.setDate(4, targetDate);
+            stmt.setDouble(5, currentAmount);
+            stmt.setInt(6, id);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating saving goal", e);
+            return false;
+        }
+    }
+
+    public static List<SavingGoal> getSavingGoals(int userId) {
+        List<SavingGoal> goals = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT id, title, description, target_amount, target_date, " +
+                 "current_amount, achieved FROM savings_goals WHERE user_id = ?")) {
+            
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                goals.add(new SavingGoal(
+                    rs.getInt("id"),
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    rs.getDouble("target_amount"),
+                    rs.getDouble("current_amount"),
+                    rs.getDate("target_date"),
+                    rs.getBoolean("achieved")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching saving goals", e);
+        }
+        return goals;
+    }
+
+    public static Map<String, Double> getAverageBudgetsByCategory() {
+        Map<String, Double> averages = new HashMap<>();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT category, AVG(budget_amount) as avg_amount " +
+                                             "FROM budgets " +
+                                             "GROUP BY category")) {
+            while (rs.next()) {
+                averages.put(rs.getString("category"), rs.getDouble("avg_amount"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return averages;
+    }
+
+    public static boolean isAdmin(int userId) {
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT isadmin FROM users WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    return rs.getBoolean(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking admin status", e);
+        }
         return false;
     }
-}
+
+    public static List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, username, email FROM users";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    users.add(new User(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("email")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching users", e);
+        }
+        return users;
+    }
+
+    public static double getCurrentMonthIncome(int userId) {
+        double totalIncome = 0;
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT COALESCE(SUM(amount), 0) FROM income_sources " +
+                        "WHERE user_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    totalIncome = rs.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error calculating current month income", e);
+        }
+        return totalIncome;
+    }
+
+    public static List<Map<String, Object>> getAllCategories(int userId) {
+        List<Map<String, Object>> categories = new ArrayList<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, name FROM categories WHERE user_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    Map<String, Object> category = new HashMap<>();
+                    category.put("id", rs.getInt("id"));
+                    category.put("name", rs.getString("name"));
+                    categories.add(category);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching categories", e);
+        }
+        return categories;
+    }
+
+    public static List<Map<String, Object>> getAllIncomeSources(int userId) {
+        List<Map<String, Object>> incomeSources = new ArrayList<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, source_name, amount, created_at FROM income_sources WHERE user_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    Map<String, Object> income = new HashMap<>();
+                    income.put("id", rs.getInt("id"));
+                    income.put("source", rs.getString("source_name"));
+                    income.put("amount", rs.getDouble("amount"));
+                    income.put("date", rs.getDate("created_at"));
+                    incomeSources.add(income);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching income sources", e);
+        }
+        return incomeSources;
+    }
+
+    public static List<Category> getCategories() {
+        List<Category> categories = new ArrayList<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, name FROM categories";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    categories.add(new Category(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        0 // No user_id needed
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching categories", e);
+        }
+        return categories;
+    }
+
+    public static boolean addCategory(String categoryName) {
+        try (Connection conn = getConnection()) {
+            String sql = "INSERT INTO categories (name) VALUES (?)";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, categoryName);
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            String friendly = getFriendlySqlError(e);
+            if (friendly != null) {
+                logger.log(Level.WARNING, friendly);
+            } else {
+                logger.log(Level.SEVERE, "Error adding category", e);
+            }
+            return false;
+        }
+    }
+
+    public static List<Map<String, Object>> getAllBudgets(int userId) {
+        List<Map<String, Object>> budgets = new ArrayList<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, category, budget_amount, current_spending, " +
+                        "created_at, updated_at FROM budgets WHERE user_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    Map<String, Object> budget = new HashMap<>();
+                    budget.put("id", rs.getInt("id"));
+                    budget.put("category", rs.getString("category")); // Direct string category
+                    budget.put("budget_amount", rs.getDouble("budget_amount"));
+                    budget.put("current_spending", rs.getDouble("current_spending"));
+                    budget.put("created_at", rs.getDate("created_at"));
+                    budget.put("updated_at", rs.getDate("updated_at"));
+                    budgets.add(budget);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching budgets", e);
+        }
+        return budgets;
+    }
+
+    public static List<Map<String, Object>> getAllSavingsGoals(int userId) {
+        List<Map<String, Object>> goals = new ArrayList<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT id, title, target_amount, current_amount, target_date, " +
+                        "achieved, description, created_at FROM savings_goals WHERE user_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    Map<String, Object> goal = new HashMap<>();
+                    goal.put("id", rs.getInt("id"));
+                    goal.put("title", rs.getString("title"));
+                    goal.put("target_amount", rs.getDouble("target_amount"));
+                    goal.put("current_amount", rs.getDouble("current_amount"));
+                    goal.put("target_date", rs.getDate("target_date"));
+                    goal.put("achieved", rs.getBoolean("achieved"));
+                    goal.put("description", rs.getString("description"));
+                    goal.put("created_at", rs.getDate("created_at"));
+                    goals.add(goal);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching savings goals", e);
+        }
+        return goals;
+    }
+
+    public static Map<String, Object> getMonthlyReport(int userId, int year, int month) {
+        Map<String, Object> report = new HashMap<>();
+        List<Map<String, Object>> categories = new ArrayList<>(); // Initialize empty list
+        report.put("categories", categories);
+        report.put("total_income", 0.0);
+        report.put("total_expenses", 0.0);
+        report.put("total_savings", 0.0);
+        report.put("transaction_count", 0);
+        
+        try (Connection conn = getConnection()) {
+            // Get income data
+            String incomeSql = "SELECT COALESCE(SUM(amount), 0) AS total_income " +
+                             "FROM income_sources " +
+                             "WHERE user_id = ? AND EXTRACT(YEAR FROM created_at) = ? " +
+                             "AND EXTRACT(MONTH FROM created_at) = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(incomeSql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    report.put("total_income", rs.getDouble("total_income"));
+                }
+            }
+
+            // Get expense data by category
+            String expenseSql = "SELECT c.name AS category, SUM(b.current_spending) AS amount " +
+                              "FROM budgets b " +
+                              "JOIN categories c ON b.category_id = c.id " +
+                              "WHERE b.user_id = ? AND EXTRACT(YEAR FROM b.created_at) = ? " +
+                              "AND EXTRACT(MONTH FROM b.created_at) = ? " +
+                              "GROUP BY c.name " +
+                              "ORDER BY amount DESC";
+            try (PreparedStatement stmt = conn.prepareStatement(expenseSql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
+                ResultSet rs = stmt.executeQuery();
+                double totalExpenses = 0;
+                while (rs.next()) {
+                    Map<String, Object> category = new HashMap<>();
+                    category.put("name", rs.getString("category"));
+                    double amount = rs.getDouble("amount");
+                    category.put("amount", amount);
+                    categories.add(category);
+                    totalExpenses += amount;
+                }
+                report.put("total_expenses", totalExpenses);
+                
+                // Calculate percentages
+                for (Map<String, Object> category : categories) {
+                    double amount = (Double) category.get("amount");
+                    double percentage = totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0;
+                    category.put("percentage", percentage);
+                }
+            }
+
+            // Get savings data
+            String savingsSql = "SELECT COALESCE(SUM(current_amount), 0) AS total_savings " +
+                              "FROM savings_goals " +
+                              "WHERE user_id = ? AND EXTRACT(YEAR FROM created_at) = ? " +
+                              "AND EXTRACT(MONTH FROM created_at) = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(savingsSql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    report.put("total_savings", rs.getDouble("total_savings"));
+                }
+            }
+
+            // Get transaction count
+            String countSql = "SELECT COUNT(*) AS transaction_count " +
+                             "FROM budgets " +
+                             "WHERE user_id = ? AND EXTRACT(YEAR FROM created_at) = ? " +
+                             "AND EXTRACT(MONTH FROM created_at) = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(countSql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    report.put("transaction_count", rs.getInt("transaction_count"));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error generating monthly report", e);
+        }
+        return report;
+    }
+
+    public static double getCurrentMonthExpenses(int userId) {
+        double totalExpenses = 0;
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT COALESCE(SUM(amount), 0) FROM expenses " +
+                        "WHERE user_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    totalExpenses = rs.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error calculating current month expenses", e);
+        }
+        return totalExpenses;
+    }
+
+    public static Map<String, Double> getMonthlyExpenses(int userId) {
+        Map<String, Double> monthlyExpenses = new LinkedHashMap<>();
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT TO_CHAR(created_at, 'Mon') AS month, " +
+                        "COALESCE(SUM(amount), 0) AS total " +
+                        "FROM expenses " +
+                        "WHERE user_id = ? " +
+                        "AND created_at >= DATE_TRUNC('year', CURRENT_DATE) " +
+                        "GROUP BY month " +
+                        "ORDER BY MIN(created_at)";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    monthlyExpenses.put(rs.getString("month"), rs.getDouble("total"));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching monthly expenses", e);
+        }
+        return monthlyExpenses;
+    }
+
+    public static double getTotalSavingsProgress(int userId) {
+        double totalProgress = 0;
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT COALESCE(SUM(current_amount), 0) FROM savings_goals WHERE user_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    totalProgress = rs.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error calculating savings progress", e);
+        }
+        return totalProgress;
+    }
+
+    public static boolean updateExpense(int expenseId, int categoryId, double amount, String description) {
+        try (Connection conn = getConnection()) {
+            // First get the old expense to adjust the budget
+            Expense oldExpense = getExpenseById(expenseId);
+            if (oldExpense == null) return false;
+            
+            // Adjust the old budget
+            String adjustBudgetSql = "UPDATE budgets SET current_spending = current_spending - ? " +
+                                   "WHERE user_id = ? AND category_id = ?";
+            try (PreparedStatement adjustStmt = conn.prepareStatement(adjustBudgetSql)) {
+                adjustStmt.setDouble(1, oldExpense.getAmount());
+                adjustStmt.setInt(2, oldExpense.getUserId());
+                adjustStmt.setInt(3, oldExpense.getCategoryId());
+                adjustStmt.executeUpdate();
+            }
+            
+            // Update the new budget
+            String updateBudgetSql = "UPDATE budgets SET current_spending = current_spending + ? " +
+                                   "WHERE user_id = ? AND category_id = ?";
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateBudgetSql)) {
+                updateStmt.setDouble(1, amount);
+                updateStmt.setInt(2, oldExpense.getUserId());
+                updateStmt.setInt(3, categoryId);
+                updateStmt.executeUpdate();
+            }
+            
+            // Update the expense
+            String updateExpenseSql = "UPDATE expenses SET category_id = ?, amount = ?, description = ? " +
+                                    "WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(updateExpenseSql)) {
+                stmt.setInt(1, categoryId);
+                stmt.setDouble(2, amount);
+                stmt.setString(3, description);
+                stmt.setInt(4, expenseId);
+                
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating expense", e);
+            return false;
+        }
+    }
+
+    public static boolean deleteExpense(int expenseId) {
+        try (Connection conn = getConnection()) {
+            // First get the expense to adjust the budget
+            Expense expense = getExpenseById(expenseId);
+            if (expense == null) return false;
+            
+            // Adjust the budget
+            String adjustBudgetSql = "UPDATE budgets SET current_spending = current_spending - ? " +
+                                   "WHERE user_id = ? AND category_id = ?";
+            try (PreparedStatement adjustStmt = conn.prepareStatement(adjustBudgetSql)) {
+                adjustStmt.setDouble(1, expense.getAmount());
+                adjustStmt.setInt(2, expense.getUserId());
+                adjustStmt.setInt(3, expense.getCategoryId());
+                adjustStmt.executeUpdate();
+            }
+            
+            // Delete the expense
+            String deleteExpenseSql = "DELETE FROM expenses WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(deleteExpenseSql)) {
+                stmt.setInt(1, expenseId);
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting expense", e);
+            return false;
+        }
+    }
+
+    public static Expense getExpenseById(int expenseId) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT e.id, e.user_id, e.category_id, c.name as category_name, " +
+                 "e.amount, e.description, e.created_at " +
+                 "FROM expenses e " +
+                 "JOIN categories c ON e.category_id = c.id " +
+                 "WHERE e.id = ?")) {
+            
+            stmt.setInt(1, expenseId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return new Expense(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    rs.getInt("category_id"),
+                    rs.getString("category_name"),
+                    rs.getDouble("amount"),
+                    rs.getString("description"),
+                    rs.getDate("created_at")
+                );
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching expense by ID", e);
+        }
+        return null;
+    }
+
+    public static List<Expense> getExpenses(int userId) {
+        List<Expense> expenses = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT e.id, e.user_id, e.category_id, c.name as category_name, " +
+                 "e.amount, e.description, e.created_at " +
+                 "FROM expenses e " +
+                 "JOIN categories c ON e.category_id = c.id " +
+                 "WHERE e.user_id = ? ORDER BY e.created_at DESC")) {
+            
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                expenses.add(new Expense(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    rs.getInt("category_id"),
+                    rs.getString("category_name"),
+                    rs.getDouble("amount"),
+                    rs.getString("description"),
+                    rs.getDate("created_at")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching expenses", e);
+        }
+        return expenses;
+    }
+
+    public static boolean hasBudgetForCategory(int userId, int categoryId) {
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT COUNT(*) FROM budgets WHERE user_id = ? AND category_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, categoryId);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking budget for category", e);
+        }
+        return false;
+    }
+
+    public static boolean deleteSavingGoal(int id) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "DELETE FROM savings_goals WHERE id = ?")) {
+            
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting saving goal ID: " + id, e);
+            return false;
+        }
+    }
+
     // Utility methods
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {
