@@ -187,10 +187,16 @@ body, html {
 
 /* Budget List */
 .budget-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
   margin-top: 20px;
 }
 
 .budget-item {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   background: #f9f9f9;
   border-radius: 12px;
   padding: 15px 20px;
