@@ -91,7 +91,7 @@
             </ul>
             
             <div style="margin-top: auto; padding: 15px;">
-                <a href="login.jsp" style="color: #3ab19b; text-decoration: none; display: flex; align-items: center; gap: 8px; justify-content: center;">
+                <a href="logout.jsp" style="color: #3ab19b; text-decoration: none; display: flex; align-items: center; gap: 8px; justify-content: center;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
@@ -105,12 +105,12 @@
                     <h1>Manage Categories</h1>
                 </div>
                 <div class="top-actions">
-                    <div class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="settings-btn">
-                        <i class="fas fa-cog"></i>
-                    </div>
+<%--                    <div class="notification-btn">--%>
+<%--                        <i class="fas fa-bell"></i>--%>
+<%--                    </div>--%>
+<%--                    <div class="settings-btn">--%>
+<%--                        <i class="fas fa-cog"></i>--%>
+<%--                    </div>--%>
                 </div>
             </div>
             

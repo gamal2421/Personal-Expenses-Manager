@@ -77,12 +77,12 @@
                     <h1>Admin Dashboard</h1>
                 </div>
                 <div class="top-actions">
-                    <div class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="settings-btn">
-                        <i class="fas fa-cog"></i>
-                    </div>
+<%--                    <div class="notification-btn">--%>
+<%--                        <i class="fas fa-bell"></i>--%>
+<%--                    </div>--%>
+<%--                    <div class="settings-btn">--%>
+<%--                        <i class="fas fa-cog"></i>--%>
+<%--                    </div>--%>
                 </div>
             </div>
             

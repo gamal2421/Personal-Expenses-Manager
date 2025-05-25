@@ -32,12 +32,7 @@
         </div>
         <div class="right-section">
             <h2>Create Account</h2>
-            <div class="social-buttons">
-                <button class="social-btn"><i class="fab fa-facebook-f"></i></button>
-                <button class="social-btn"><i class="fab fa-google"></i></button>
-                <button class="social-btn"><i class="fab fa-linkedin-in"></i></button>
-            </div>
-            <div class="divider">or use your email for registration</div>
+            <div class="divider"> use your email for registration</div>
             <form id="signupForm" method="post">
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="email" name="email" placeholder="Email" required>

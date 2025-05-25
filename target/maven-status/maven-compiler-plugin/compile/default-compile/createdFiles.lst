@@ -8,4 +8,5 @@ javawork\personalexp\models\Budget.class
 javawork\personalexp\models\User.class
 javawork\personalexp\models\SavingGoal.class
 javawork\personalexp\models\Category.class
+javawork\personalexp\servlets\LogoutServlet.class
 javawork\personalexp\servlets\CategoryDeleteServlet.class

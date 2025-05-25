@@ -91,6 +91,7 @@
     <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
     <li class="nav-item"><a href="categories.jsp"><i class="icons fas fa-tags"></i> Categories</a></li>
     <li class="nav-item"><a href="expenses.jsp"><i class="icons fas fa-shopping-cart"></i> Expenses</a></li>
+    <li class="nav-item"><a href="logout.jsp"><i class="icons fas fa-sign-out-alt"></i> Logout</a></li>
 </ul>
     </div>
 
@@ -100,12 +101,12 @@
                 <h1>Complete Financial Report</h1>
             </div>
             <div class="top-actions">
-                <div class="notification-btn">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <div class="settings-btn">
-                    <i class="fas fa-cog"></i>
-                </div>
+<%--                <div class="notification-btn">--%>
+<%--                    <i class="fas fa-bell"></i>--%>
+<%--                </div>--%>
+<%--                <div class="settings-btn">--%>
+<%--                    <i class="fas fa-cog"></i>--%>
+<%--                </div>--%>
             </div>
         </div>
 
