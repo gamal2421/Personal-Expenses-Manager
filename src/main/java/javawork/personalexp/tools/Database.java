@@ -138,12 +138,12 @@ public class Database {
     public static User getUserInfo(int userId) {
         User user = null;
         try (Connection conn = getConnection()) {
-            String sql = "SELECT id, username, email FROM users WHERE id = ?";
+            String sql = "SELECT id, username, email, income_level FROM users WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
-                    user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("email"));
+                    user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("email"), rs.getString("income_level"));
                 }
             }
         } catch (SQLException e) {
@@ -170,6 +170,18 @@ public class Database {
         }
         // Add more as needed
         return null;
+    }
+
+    // Helper to determine income level based on total income
+    private static String determineIncomeLevel(double totalIncome) {
+        // Define your income tiers here. These are just examples.
+        if (totalIncome < 20000) {
+            return "Low";
+        } else if (totalIncome >= 20000 && totalIncome < 50000) {
+            return "Medium";
+        } else {
+            return "High";
+        }
     }
 
     public static boolean addExpense(int userId, int categoryId, double amount, String description) throws SQLException {
@@ -274,7 +286,16 @@ public class Database {
             stmt.setDouble(2, amount);
             stmt.setString(3, source);
             
-            return stmt.executeUpdate() > 0;
+            boolean success = stmt.executeUpdate() > 0;
+            
+            if (success) {
+                // Recalculate and update income level after adding income
+                double totalIncome = getTotalIncome(userId);
+                String newIncomeLevel = determineIncomeLevel(totalIncome);
+                updateUserIncomeLevel(userId, newIncomeLevel);
+            }
+            
+            return success;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error adding income for user: " + userId, e);
             return false;
@@ -290,7 +311,29 @@ public class Database {
             stmt.setString(2, source);
             stmt.setInt(3, id);
             
-            return stmt.executeUpdate() > 0;
+            boolean success = stmt.executeUpdate() > 0;
+
+            if (success) {
+                // Get the user ID for the updated income
+                int userId = -1;
+                String getUserIdSql = "SELECT user_id FROM income_sources WHERE id = ?";
+                try (PreparedStatement getUserIdStmt = conn.prepareStatement(getUserIdSql)) {
+                    getUserIdStmt.setInt(1, id);
+                    ResultSet rs = getUserIdStmt.executeQuery();
+                    if (rs.next()) {
+                        userId = rs.getInt("user_id");
+                    }
+                }
+
+                if (userId != -1) {
+                    // Recalculate and update income level after updating income
+                    double totalIncome = getTotalIncome(userId);
+                    String newIncomeLevel = determineIncomeLevel(totalIncome);
+                    updateUserIncomeLevel(userId, newIncomeLevel);
+                }
+            }
+
+            return success;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error updating income ID: " + id, e);
             return false;
@@ -315,10 +358,10 @@ public class Database {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                  "SELECT id, amount, source_name FROM income_sources WHERE user_id = ? ORDER BY id DESC")) {
-            
+
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 incomes.add(new Income(
                     rs.getInt("id"),
@@ -328,6 +371,56 @@ public class Database {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error fetching incomes for user: " + userId, e);
+        }
+        return incomes;
+    }
+
+    public static List<Income> getIncomesByMonth(int userId, int year, int month) {
+        List<Income> incomes = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT id, amount, source_name FROM income_sources " +
+                 "WHERE user_id = ? AND created_at <= (MAKE_DATE(?, ?, 1) + interval '1 month' - interval '1 day') " +
+                 "ORDER BY created_at DESC")) {
+
+            stmt.setInt(1, userId);
+            stmt.setInt(2, year);
+            stmt.setInt(3, month);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                incomes.add(new Income(
+                    rs.getInt("id"),
+                    rs.getDouble("amount"),
+                    rs.getString("source_name")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching incomes for user up to selected month using PostgreSQL date functions: " + userId, e);
+        }
+        return incomes;
+    }
+
+    public static List<Income> getIncomesOnOrAfterDate(int userId, java.util.Date date) {
+        List<Income> incomes = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT id, amount, source_name FROM income_sources " +
+                 "WHERE user_id = ? AND created_at >= ? ORDER BY created_at DESC")) {
+
+            stmt.setInt(1, userId);
+            stmt.setDate(2, new java.sql.Date(date.getTime()));
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                incomes.add(new Income(
+                    rs.getInt("id"),
+                    rs.getDouble("amount"),
+                    rs.getString("source_name")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching incomes for user on or after date: " + userId, e);
         }
         return incomes;
     }
@@ -721,14 +814,15 @@ public class Database {
     public static List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         try (Connection conn = getConnection()) {
-            String sql = "SELECT id, username, email FROM users";
+            String sql = "SELECT id, username, email, income_level FROM users";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     users.add(new User(
                         rs.getInt("id"),
                         rs.getString("username"),
-                        rs.getString("email")
+                        rs.getString("email"),
+                        rs.getString("income_level")
                     ));
                 }
             }
@@ -756,12 +850,11 @@ public class Database {
         return totalIncome;
     }
 
-    public static List<Map<String, Object>> getAllCategories(int userId) {
+    public static List<Map<String, Object>> getAllCategories() {
         List<Map<String, Object>> categories = new ArrayList<>();
         try (Connection conn = getConnection()) {
-            String sql = "SELECT id, name FROM categories WHERE user_id = ?";
+            String sql = "SELECT id, name FROM categories";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     Map<String, Object> category = new HashMap<>();
@@ -836,18 +929,20 @@ public class Database {
         }
     }
 
-    public static List<Map<String, Object>> getAllBudgets(int userId) {
+    public static List<Map<String, Object>> getAllBudgets(int userId, int year, int month) {
         List<Map<String, Object>> budgets = new ArrayList<>();
         try (Connection conn = getConnection()) {
             String sql = "SELECT id, category, budget_amount, current_spending, " +
-                        "created_at, updated_at FROM budgets WHERE user_id = ?";
+                        "created_at, updated_at FROM budgets WHERE user_id = ? AND created_at <= (MAKE_DATE(?, ?, 1) + interval '1 month' - interval '1 day') ";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     Map<String, Object> budget = new HashMap<>();
                     budget.put("id", rs.getInt("id"));
-                    budget.put("category", rs.getString("category")); // Direct string category
+                    budget.put("category", rs.getString("category"));
                     budget.put("budget_amount", rs.getDouble("budget_amount"));
                     budget.put("current_spending", rs.getDouble("current_spending"));
                     budget.put("created_at", rs.getDate("created_at"));
@@ -856,18 +951,20 @@ public class Database {
                 }
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error fetching budgets", e);
+            logger.log(Level.SEVERE, "Error fetching budgets up to selected month: " + e.getMessage(), e);
         }
         return budgets;
     }
 
-    public static List<Map<String, Object>> getAllSavingsGoals(int userId) {
+    public static List<Map<String, Object>> getAllSavingsGoals(int userId, int year, int month) {
         List<Map<String, Object>> goals = new ArrayList<>();
         try (Connection conn = getConnection()) {
             String sql = "SELECT id, title, target_amount, current_amount, target_date, " +
-                        "achieved, description, created_at FROM savings_goals WHERE user_id = ?";
+                        "achieved, description, created_at FROM savings_goals WHERE user_id = ? AND created_at <= (MAKE_DATE(?, ?, 1) + interval '1 month' - interval '1 day') ";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     Map<String, Object> goal = new HashMap<>();
@@ -883,7 +980,7 @@ public class Database {
                 }
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error fetching savings goals", e);
+            logger.log(Level.SEVERE, "Error fetching savings goals up to selected month: " + e.getMessage(), e);
         }
         return goals;
     }
@@ -1114,9 +1211,10 @@ public class Database {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                  "SELECT e.id, e.user_id, e.category_id, c.name as category_name, " +
-                 "e.amount, e.description, e.created_at " +
+                 "e.amount, e.description, e.created_at, b.budget_amount " +
                  "FROM expenses e " +
                  "JOIN categories c ON e.category_id = c.id " +
+                 "LEFT JOIN budgets b ON e.user_id = b.user_id AND e.category_id = b.category_id " +
                  "WHERE e.id = ?")) {
             
             stmt.setInt(1, expenseId);
@@ -1130,7 +1228,8 @@ public class Database {
                     rs.getString("category_name"),
                     rs.getDouble("amount"),
                     rs.getString("description"),
-                    rs.getDate("created_at")
+                    rs.getDate("created_at"),
+                    rs.getDouble("budget_amount")
                 );
             }
         } catch (SQLException e) {
@@ -1144,9 +1243,10 @@ public class Database {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                  "SELECT e.id, e.user_id, e.category_id, c.name as category_name, " +
-                 "e.amount, e.description, e.created_at " +
+                 "e.amount, e.description, e.created_at, b.budget_amount " +
                  "FROM expenses e " +
                  "JOIN categories c ON e.category_id = c.id " +
+                 "LEFT JOIN budgets b ON e.user_id = b.user_id AND e.category_id = b.category_id " +
                  "WHERE e.user_id = ? ORDER BY e.created_at DESC")) {
             
             stmt.setInt(1, userId);
@@ -1160,7 +1260,8 @@ public class Database {
                     rs.getString("category_name"),
                     rs.getDouble("amount"),
                     rs.getString("description"),
-                    rs.getDate("created_at")
+                    rs.getDate("created_at"),
+                    rs.getDouble("budget_amount")
                 ));
             }
         } catch (SQLException e) {
@@ -1205,6 +1306,66 @@ public class Database {
             return conn.isValid(2);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Connection test failed", e);
+            return false;
+        }
+    }
+
+    // Methods for income level based averages
+    public static double getAverageBudgetByIncomeLevel(String incomeLevel, int year, int month) {
+        double averageBudget = 0;
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT COALESCE(AVG(b.budget_amount), 0) FROM budgets b " +
+                         "JOIN users u ON b.user_id = u.id " +
+                         "WHERE u.income_level = ? AND EXTRACT(YEAR FROM b.created_at) = ? " +
+                         "AND EXTRACT(MONTH FROM b.created_at) = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, incomeLevel);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    averageBudget = rs.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error calculating average budget for income level: " + incomeLevel, e);
+        }
+        return averageBudget;
+    }
+
+    public static double getAverageIncomeByIncomeLevel(String incomeLevel, int year, int month) {
+        double averageIncome = 0;
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT COALESCE(AVG(i.amount), 0) FROM income_sources i " +
+                         "JOIN users u ON i.user_id = u.id " +
+                         "WHERE u.income_level = ? AND EXTRACT(YEAR FROM i.created_at) = ? " +
+                         "AND EXTRACT(MONTH FROM i.created_at) = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, incomeLevel);
+                stmt.setInt(2, year);
+                stmt.setInt(3, month);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    averageIncome = rs.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error calculating average income for income level: " + incomeLevel, e);
+        }
+        return averageIncome;
+    }
+
+    // New method to update user's income level
+    public static boolean updateUserIncomeLevel(int userId, String incomeLevel) {
+        try (Connection conn = getConnection()) {
+            String sql = "UPDATE users SET income_level = ? WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, incomeLevel);
+                stmt.setInt(2, userId);
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating income level for user: " + userId, e);
             return false;
         }
     }

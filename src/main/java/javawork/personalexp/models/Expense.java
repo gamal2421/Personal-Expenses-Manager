@@ -10,12 +10,13 @@ public class Expense {
     private double amount;
     private String description;
     private Date date;
+    private double budgetAmount;
     
     // Constructors, getters, and setters
     public Expense() {}
     
     public Expense(int id, int userId, int categoryId, String categoryName, 
-                  double amount, String description, Date date) {
+                  double amount, String description, Date date, double budgetAmount) {
         this.id = id;
         this.userId = userId;
         this.categoryId = categoryId;
@@ -23,6 +24,7 @@ public class Expense {
         this.amount = amount;
         this.description = description;
         this.date = date;
+        this.budgetAmount = budgetAmount;
     }
     public void setAmount(double amount) {
         this.amount = amount;
@@ -54,6 +56,12 @@ public class Expense {
         return id;
     }public int getUserId() {
         return userId;
+    }
+    public double getBudgetAmount() {
+        return budgetAmount;
+    }
+    public void setBudgetAmount(double budgetAmount) {
+        this.budgetAmount = budgetAmount;
     }
     // Getters and setters for all fields
     // ...

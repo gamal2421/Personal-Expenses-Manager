@@ -320,3 +320,55 @@ tr:hover td {
     display: flex;
     gap: 10px;
 }
+
+.amount.positive {
+    color: #2ecc71;
+}
+
+.amount.negative {
+    color: #e74c3c;
+}
+
+/* Filter Section */
+.filter-section {
+    margin-bottom: 20px;
+    background: #f9f9f9;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.filter-section form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-section label {
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-section input[type="month"] {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+}
+
+.filter-section button[type="submit"] {
+    padding: 8px 15px;
+    background-color: #3ab19b;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.filter-section button[type="submit"]:hover {
+    background-color: #2ecc71;
+}

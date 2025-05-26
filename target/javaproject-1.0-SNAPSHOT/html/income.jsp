@@ -53,6 +53,8 @@
         double amount = income.getAmount();
         incomeBySource.merge(source, amount, Double::sum);
     }
+
+    double totalIncome = incomes.stream().mapToDouble(Income::getAmount).sum();
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -128,6 +130,10 @@
                     <canvas id="incomeChart"></canvas>
                 </div>
                 
+                <div class="total-income-summary">
+                    <h3>Total Income: $<%= String.format("%.2f", totalIncome) %></h3>
+                </div>
+
                 <div class="data-grid">
                     <% if (incomes.isEmpty()) { %>
                         <div class="no-income">No income records found</div>

@@ -157,7 +157,7 @@
                     </div>
                 <% } else { %>
                     <% for (Expense expense : expenses) { %>
-                    <div class="expense-item" id="expense-<%= expense.getId() %>">
+                    <div class="expense-item <%= (expense.getBudgetAmount() > 0 && expense.getAmount() > expense.getBudgetAmount()) ? "over-budget" : "" %>" id="expense-<%= expense.getId() %>">
                         <div class="expense-header">
                             <div class="expense-category"><%= expense.getCategoryName() %></div>
                             <div class="expense-amount">-$<%= String.format("%.2f", expense.getAmount()) %></div>

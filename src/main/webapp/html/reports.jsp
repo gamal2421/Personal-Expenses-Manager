@@ -3,6 +3,10 @@
 <%@ page import="javawork.personalexp.models.Income" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.text.ParseException"%>
+<%! // Declare monthNames as a declaration block
+    String[] monthNames = {"", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+%>
 <%
     // Check if user is logged in
     String userEmail = (String) session.getAttribute("userEmail");
@@ -14,37 +18,69 @@
     // Get user data
     int userId = Database.getUserIdByEmail(userEmail);
     User user = Database.getUserInfo(userId);
+    String userIncomeLevel = user.getIncomeLevel(); // Get user's income level
     
-    // Get all data
-    List<Map<String, Object>> categories = Database.getAllCategories(userId);
-    List<Income> incomes = Database.getIncomes(userId);
-    List<Map<String, Object>> budgets = Database.getAllBudgets(userId);
-    List<Map<String, Object>> savingsGoals = Database.getAllSavingsGoals(userId);
+    // Get selected month and year from request, default to current month/year if not present
+    int selectedMonth = 0; // 0 for all months
+    int selectedYear = 0; // 0 for all years
+
+    java.util.Calendar cal = java.util.Calendar.getInstance();
+    int currentYear = cal.get(java.util.Calendar.YEAR);
+    int currentMonth = cal.get(java.util.Calendar.MONTH) + 1; // Calendar.MONTH is 0-indexed
+
+    String reportDateParam = request.getParameter("reportDate");
+    if (reportDateParam != null && !reportDateParam.isEmpty()) {
+        SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM");
+        try {
+            java.util.Date date = inputDateFormat.parse(reportDateParam);
+            cal.setTime(date);
+            selectedYear = cal.get(java.util.Calendar.YEAR);
+            selectedMonth = cal.get(java.util.Calendar.MONTH) + 1; // Calendar.MONTH is 0-indexed
+        } catch (ParseException e) {
+            // Handle parse exception if needed, maybe default to current month/year
+            selectedYear = currentYear;
+            selectedMonth = currentMonth;
+        }
+    } else {
+        // Default to current month and year if no date is selected
+        selectedYear = currentYear;
+        selectedMonth = currentMonth;
+    }
     
-    // Get average budgets across all users
-    Map<String, Double> averageBudgets = Database.getAverageBudgetsByCategory();
+    // Get all data based on selected month and year
+    List<Map<String, Object>> categories = Database.getAllCategories();
+    List<Income> incomes = Database.getIncomesByMonth(userId, selectedYear, selectedMonth);
+    List<Map<String, Object>> budgets = Database.getAllBudgets(userId, selectedYear, selectedMonth);
+    List<Map<String, Object>> savingsGoals = Database.getAllSavingsGoals(userId, selectedYear, selectedMonth);
     
-    // Calculate totals
+    // Get average budgets across all users (this might not need month/year filtering depending on requirement)
+    // Map<String, Double> averageBudgets = Database.getAverageBudgetsByCategory(); // Assuming this is for overall comparison
+    
+    // Get average budget and income for the user's income level
+    double averageBudgetForIncomeLevel = 0;
+    double averageIncomeForIncomeLevel = 0;
+    if (userIncomeLevel != null && !userIncomeLevel.isEmpty()) {
+        averageBudgetForIncomeLevel = Database.getAverageBudgetByIncomeLevel(userIncomeLevel, selectedYear, selectedMonth);
+        averageIncomeForIncomeLevel = Database.getAverageIncomeByIncomeLevel(userIncomeLevel, selectedYear, selectedMonth);
+    }
+
+    // Calculate totals based on filtered data
     double totalIncome = incomes != null ? incomes.stream().mapToDouble(Income::getAmount).sum() : 0;
     double totalBudget = budgets != null ? budgets.stream().mapToDouble(b -> (Double)b.get("budget_amount")).sum() : 0;
     double totalSpending = budgets != null ? budgets.stream().mapToDouble(b -> (Double)b.get("current_spending")).sum() : 0;
     double totalSavingsTarget = savingsGoals != null ? savingsGoals.stream().mapToDouble(g -> (Double)g.get("target_amount")).sum() : 0;
     double totalSavingsCurrent = savingsGoals != null ? savingsGoals.stream().mapToDouble(g -> (Double)g.get("current_amount")).sum() : 0;
     
-    // Calculate budget ranking counts
+    // Calculate budget ranking counts (based on filtered budgets and income level average)
     int highCount = 0, avgCount = 0, lowCount = 0;
-    if (budgets != null) {
+    if (budgets != null && userIncomeLevel != null && !userIncomeLevel.isEmpty() && averageBudgetForIncomeLevel > 0) {
         for (Map<String, Object> budget : budgets) {
-            String categoryName = (String) budget.get("category");
-            Double avgBudget = averageBudgets.get(categoryName);
-            if (avgBudget != null) {
-                double budgetAmount = (Double) budget.get("budget_amount");
-                double percentageDiff = ((budgetAmount - avgBudget) / avgBudget) * 100;
-                
-                if (percentageDiff > 20) highCount++;
-                else if (percentageDiff < -20) lowCount++;
-                else avgCount++;
-            }
+            double budgetAmount = (Double) budget.get("budget_amount");
+            double percentageDiff = ((budgetAmount - averageBudgetForIncomeLevel) / averageBudgetForIncomeLevel) * 100;
+            
+            if (percentageDiff > 20) highCount++;
+            else if (percentageDiff < -20) lowCount++;
+            else avgCount++;
         }
     }
     
@@ -66,7 +102,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
 <!-- Optional: Web Manifest for PWA -->
 <link rel="manifest" href="/icons/site.webmanifest">
-  <title>Personal Expenses Manager - Complete Report</title>
+  <title>Personal Expenses Manager - Report</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/reports.css">
@@ -98,7 +134,7 @@
     <div class="content-area">
         <div class="top-bar">
             <div class="page-title">
-                <h1>Complete Financial Report</h1>
+                <h1> Financial Report</h1>
             </div>
             <div class="top-actions">
 <%--                <div class="notification-btn">--%>
@@ -108,6 +144,15 @@
 <%--                    <i class="fas fa-cog"></i>--%>
 <%--                </div>--%>
             </div>
+        </div>
+
+        <div class="filter-section">
+            <form action="reports.jsp" method="get">
+                <label for="reportDate">Select Month and Year:</label>
+                <input type="month" id="reportDate" name="reportDate" value="<%= (selectedYear != 0 && selectedMonth != 0) ? String.format("%d-%02d", selectedYear, selectedMonth) : "" %>">
+
+                <button type="submit">Filter</button>
+            </form>
         </div>
 
         <div class="report-content">
@@ -120,6 +165,21 @@
                 <div class="summary-card budget">
                     <h3>Total Budget</h3>
                     <p class="value">$<%= String.format("%.2f", totalBudget) %></p>
+                </div>
+                
+                <div class="summary-card income-vs-budget">
+                    <h3>Income vs Budget (Your Level)</h3>
+                    <p class="value"><%= String.format("%.1f%%", (totalBudget > 0 ? (totalIncome / totalBudget) * 100 : 0)) %></p>
+                </div>
+                
+                <div class="summary-card income-level-avg-income">
+                    <h3>Avg Income (<%= userIncomeLevel != null ? userIncomeLevel : "N/A" %>)</h3>
+                    <p class="value">$<%= String.format("%.2f", averageIncomeForIncomeLevel) %></p>
+                </div>
+                
+                <div class="summary-card income-level-avg-budget">
+                    <h3>Avg Budget (<%= userIncomeLevel != null ? userIncomeLevel : "N/A" %>)</h3>
+                    <p class="value">$<%= String.format("%.2f", averageBudgetForIncomeLevel) %></p>
                 </div>
                 
                 <div class="summary-card spending">
@@ -178,7 +238,7 @@
                         <th>ID</th>
                         <th>Category</th>
                         <th>Your Budget</th>
-                        <th>Avg Budget</th>
+                        <th>Avg Budget (<%= userIncomeLevel != null ? userIncomeLevel : "N/A" %>)</th>
                         <th>Comparison</th>
                         <th>Rank</th>
                         <th>Current Spending</th>
@@ -193,16 +253,15 @@
                             double currentSpending = (Double) budget.get("current_spending");
                             double remaining = budgetAmount - currentSpending;
                             String categoryName = (String) budget.get("category");
-                            Double avgBudget = averageBudgets.get(categoryName);
                             
-                            // Calculate comparison and rank
+                            // Calculate comparison and rank using average budget for income level
                             String comparison = "N/A";
                             String rank = "N/A";
                             String rankClass = "";
                             
-                            if (avgBudget != null) {
-                                double difference = budgetAmount - avgBudget;
-                                double percentageDiff = (difference / avgBudget) * 100;
+                            if (userIncomeLevel != null && !userIncomeLevel.isEmpty() && averageBudgetForIncomeLevel > 0) {
+                                double difference = budgetAmount - averageBudgetForIncomeLevel;
+                                double percentageDiff = (difference / averageBudgetForIncomeLevel) * 100;
                                 
                                 if (percentageDiff > 20) {
                                     comparison = String.format("+%.1f%%", percentageDiff);
@@ -223,11 +282,11 @@
                         <td><%= budget.get("id") %></td>
                         <td><%= categoryName %></td>
                         <td>$<%= String.format("%.2f", budgetAmount) %></td>
-                        <td><%= avgBudget != null ? "$" + String.format("%.2f", avgBudget) : "N/A" %></td>
+                        <td><%= String.format("%.2f", averageBudgetForIncomeLevel) %></td>
                         <td><%= comparison %></td>
                         <td><span class="badge <%= rankClass %>"><%= rank %></span></td>
                         <td>$<%= String.format("%.2f", currentSpending) %></td>
-                        <td style="color: <%= remaining >= 0 ? "#2ecc71" : "#e74c3c" %>">
+                        <td class="amount <%= remaining >= 0 ? "positive" : "negative" %>">
                             $<%= String.format("%.2f", remaining) %>
                         </td>
                         <td><%= budget.get("created_at") != null ? dateFormat.format(budget.get("created_at")) : "N/A" %></td>
@@ -269,7 +328,7 @@
                         <td>$<%= String.format("%.2f", current) %></td>
                         <td>
                             <div class="progress-container">
-                                <div class="progress-bar" style="width: <%= progress %>%"></div>
+                                <div class="progress-bar" style="width: <%= String.format("%.1f", progress) %>%;"></div>
                             </div>
                             <%= String.format("%.1f", progress) %>%
                         </td>

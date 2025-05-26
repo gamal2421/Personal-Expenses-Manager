@@ -524,3 +524,13 @@
                 max-width: 100%;
             }
           }
+  
+          .over-budget {
+            border: 1px solid red;
+            background-color: #ffebee;
+          }
+  
+          .over-budget .expense-amount {
+            color: red;
+            font-weight: bold;
+          }
