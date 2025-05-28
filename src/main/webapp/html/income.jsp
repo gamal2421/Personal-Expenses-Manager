@@ -144,12 +144,16 @@
                                 <span class="income-source"><%= income.getSource() %></span>
                                 <span class="income-amount">$<%= String.format("%.2f", income.getAmount()) %></span>
                                 <div class="income-actions">
-                                    <button class="action-btn edit-btn" 
-                                        onclick="editIncome(<%= income.getId() %>, '<%= income.getSource() %>', <%= income.getAmount() %>)">
+                                    <button class="action-btn edit-income-btn"
+                                        data-id="<%= income.getId() %>"
+                                        data-source="<%= income.getSource() %>"
+                                        data-amount="<%= income.getAmount() %>"
+                                        >
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="action-btn delete-btn" 
-                                        onclick="deleteIncome(<%= income.getId() %>)">
+                                    <button class="action-btn delete-income-btn"
+                                        data-id="<%= income.getId() %>"
+                                        >
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -218,106 +222,225 @@
             }
         });
 
-        // Add new income
-        document.getElementById('addIncomeBtn').addEventListener('click', function() {
-            const source = prompt('Enter income source:');
-            if (source && source.trim()) {
-                const amount = parseFloat(prompt('Enter income amount:'));
-                if (!isNaN(amount)) {
+        // Get form and form elements
+        const incomeFormContainer = document.getElementById('incomeFormContainer');
+        const incomeForm = document.getElementById('incomeForm');
+        const incomeFormAction = document.getElementById('incomeFormAction');
+        const incomeIdInput = document.getElementById('incomeId');
+        const incomeSourceInput = document.getElementById('incomeSource');
+        const incomeAmountInput = document.getElementById('incomeAmount');
+        const incomeModalTitle = document.getElementById('incomeModalTitle');
+        const closeIncomeFormBtn = document.getElementById('closeIncomeForm');
+        const cancelIncomeFormBtn = document.getElementById('cancelIncomeForm');
+
+        // Get delete confirmation modal elements
+        const deleteIncomeConfirmModal = document.getElementById('deleteIncomeConfirmModal');
+        const confirmDeleteIncomeBtn = document.getElementById('confirmDeleteIncomeBtn');
+        const cancelDeleteIncomeBtn = document.getElementById('cancelDeleteIncomeBtn');
+        const closeIncomeConfirmModalBtn = document.getElementById('closeIncomeConfirmModal');
+        let incomeIdToDelete = null; // Variable to store the ID of the income to be deleted
+
+        // Function to show the modal form
+        function showIncomeForm(action, income) {
+            console.log('Showing income form for action:', action, 'income:', income);
+            incomeForm.reset(); // Reset form fields
+            incomeFormAction.value = action;
+            incomeIdInput.value = income ? income.id : '';
+            incomeModalTitle.textContent = action === 'add' ? 'Add Income' : 'Edit Income';
+
+            if (income) {
+                // Populate form for editing
+                incomeSourceInput.value = income.source;
+                incomeAmountInput.value = income.amount;
+            }
+
+            // Use class to show for CSS transitions
+            incomeFormContainer.classList.add('active');
+             console.log('Added active class to incomeFormContainer');
+        }
+
+        // Function to hide the modal form
+        function hideIncomeForm() {
+             console.log('Hiding income form');
+            // Use class to hide for CSS transitions
+            incomeFormContainer.classList.remove('active');
+             console.log('Removed active class from incomeFormContainer');
+        }
+
+        // Add new income - show form
+        // Assuming there is an element with ID 'addIncomeBtn'
+        const addIncomeBtn = document.getElementById('addIncomeBtn');
+        if (addIncomeBtn) {
+             addIncomeBtn.addEventListener('click', function() {
+                console.log('Add Income button clicked');
+                showIncomeForm('add');
+            });
+        }
+
+        // Add event listeners to edit buttons
+        document.querySelectorAll('.edit-income-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                console.log('Edit income button clicked', button.getAttribute('data-id'));
+                const income = {
+                    id: button.getAttribute('data-id'),
+                    source: button.getAttribute('data-source'),
+                    amount: button.getAttribute('data-amount')
+                };
+                showIncomeForm('update', income);
+            });
+        });
+
+        // Add event listener for cancel button (add/edit modal)
+        if (cancelIncomeFormBtn) {
+            cancelIncomeFormBtn.addEventListener('click', hideIncomeForm);
+        }
+
+        // Add event listener for close button (X) (add/edit modal)
+        if (closeIncomeFormBtn) {
+            closeIncomeFormBtn.addEventListener('click', hideIncomeForm);
+        }
+
+        // Close modal if user clicks outside of it (add/edit modal)
+        window.addEventListener('click', function(event) {
+            if (event.target === incomeFormContainer) {
+                console.log('Clicked outside income modal, hiding form');
+                hideIncomeForm();
+            }
+        });
+
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-income-btn').forEach(button => {
+             // Remove any existing click listeners to prevent multiple confirmations
+            const oldClickListener = button._clickHandler; // Store the handler if needed later, or just remove
+            if (oldClickListener) {
+                button.removeEventListener('click', oldClickListener);
+            }
+
+            // Add the new click listener
+            const newClickListener = function() {
+                console.log('Delete income button clicked', this.getAttribute('data-id'));
+                incomeIdToDelete = this.getAttribute('data-id'); // Store the ID
+                
+                console.log('Attempting to show delete confirm modal...');
+                console.log('deleteIncomeConfirmModal element:', deleteIncomeConfirmModal);
+                console.log('deleteIncomeConfirmModal classList before adding active:', deleteIncomeConfirmModal.classList);
+                
+                deleteIncomeConfirmModal.classList.add('active'); // Show the confirmation modal
+                
+                console.log('deleteIncomeConfirmModal classList after adding active:', deleteIncomeConfirmModal.classList); // Debugging line
+            };
+            button.addEventListener('click', newClickListener);
+            button._clickHandler = newClickListener; // Store the new handler
+        });
+
+        // Add event listeners for the delete confirmation modal
+        if (confirmDeleteIncomeBtn) {
+            confirmDeleteIncomeBtn.addEventListener('click', function() {
+                console.log('Confirm delete button clicked for income ID:', incomeIdToDelete);
+                if (incomeIdToDelete) {
+                    // Create and submit the delete form
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = 'income.jsp';
+                    form.action = 'income.jsp'; // Submit to income.jsp
                     
                     const actionInput = document.createElement('input');
                     actionInput.type = 'hidden';
                     actionInput.name = 'action';
-                    actionInput.value = 'add';
+                    actionInput.value = 'delete'; // Action is 'delete'
                     form.appendChild(actionInput);
                     
-                    const sourceInput = document.createElement('input');
-                    sourceInput.type = 'hidden';
-                    sourceInput.name = 'source';
-                    sourceInput.value = source;
-                    form.appendChild(sourceInput);
-                    
-                    const amountInput = document.createElement('input');
-                    amountInput.type = 'hidden';
-                    amountInput.name = 'amount';
-                    amountInput.value = amount;
-                    form.appendChild(amountInput);
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'id';
+                    idInput.value = incomeIdToDelete;
+                    form.appendChild(idInput);
                     
                     document.body.appendChild(form);
                     form.submit();
-                } else {
-                    alert('Please enter a valid amount');
                 }
+                deleteIncomeConfirmModal.classList.remove('active'); // Hide the modal
+            });
+        }
+
+        if (cancelDeleteIncomeBtn) {
+            cancelDeleteIncomeBtn.addEventListener('click', function() {
+                console.log('Cancel delete button clicked');
+                incomeIdToDelete = null; // Clear the stored ID
+                deleteIncomeConfirmModal.classList.remove('active'); // Hide the modal
+            });
+        }
+
+         if (closeIncomeConfirmModalBtn) {
+            closeIncomeConfirmModalBtn.addEventListener('click', function() {
+                 console.log('Close delete modal button clicked');
+                 incomeIdToDelete = null; // Clear the stored ID
+                 deleteIncomeConfirmModal.classList.remove('active'); // Hide the modal
+            });
+         }
+
+        // Close delete modal if user clicks outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === deleteIncomeConfirmModal) {
+                console.log('Clicked outside income modal, hiding');
+                incomeIdToDelete = null; // Clear the stored ID
+                deleteIncomeConfirmModal.classList.remove('active'); // Hide the modal
             }
         });
+
     });
-
-    function editIncome(id, currentSource, currentAmount) {
-        const newSource = prompt('Edit income source:', currentSource);
-        if (newSource && newSource.trim()) {
-            const newAmount = parseFloat(prompt('Edit income amount:', currentAmount));
-            if (!isNaN(newAmount)) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'income.jsp';
-                
-                const actionInput = document.createElement('input');
-                actionInput.type = 'hidden';
-                actionInput.name = 'action';
-                actionInput.value = 'update';
-                form.appendChild(actionInput);
-                
-                const idInput = document.createElement('input');
-                idInput.type = 'hidden';
-                idInput.name = 'id';
-                idInput.value = id;
-                form.appendChild(idInput);
-                
-                const sourceInput = document.createElement('input');
-                sourceInput.type = 'hidden';
-                sourceInput.name = 'source';
-                sourceInput.value = newSource;
-                form.appendChild(sourceInput);
-                
-                const amountInput = document.createElement('input');
-                amountInput.type = 'hidden';
-                amountInput.name = 'amount';
-                amountInput.value = newAmount;
-                form.appendChild(amountInput);
-                
-                document.body.appendChild(form);
-                form.submit();
-            } else {
-                alert('Please enter a valid amount');
-            }
-        }
-    }
-
-    function deleteIncome(id) {
-        if (confirm('Are you sure you want to delete this income record?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'income.jsp';
-            
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'delete';
-            form.appendChild(actionInput);
-            
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'id';
-            idInput.value = id;
-            form.appendChild(idInput);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
 </script>
+
+<!-- Hidden Form for Add/Edit Income Modal -->
+<div id="incomeFormContainer" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="incomeModalTitle">Add Income</h3>
+            <span class="modal-close" id="closeIncomeForm">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="incomeForm" method="POST" action="income.jsp">
+                <input type="hidden" name="action" id="incomeFormAction">
+                <input type="hidden" name="id" id="incomeId">
+
+                <div class="form-group">
+                    <label for="incomeSource" class="form-label">Source:</label>
+                    <input type="text" name="source" id="incomeSource" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="incomeAmount" class="form-label">Amount:</label>
+                    <input type="number" name="amount" id="incomeAmount" class="form-input" step="0.01" required min="0">
+                </div>
+                 <%-- Note: income model in JSP doesn't currently have a date field in the form handling --%>
+                 <%-- If a date is needed, this form and the backend handling will need to be updated --%>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Income</button>
+                    <button type="button" id="cancelIncomeForm" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Confirmation Modal for Delete Income -->
+<div id="deleteIncomeConfirmModal" class="modal-overlay">
+    <div class="modal confirmation-dialog">
+        <div class="modal-header">
+            <h3 id="confirmIncomeModalTitle">Confirm Deletion</h3>
+            <span class="modal-close" id="closeIncomeConfirmModal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="icon-wrapper">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <p>Are you sure you want to delete this income record?</p>
+        </div>
+        <div class="form-actions">
+            <button type="button" id="confirmDeleteIncomeBtn" class="btn btn-danger">Yes, Delete</button>
+            <button type="button" id="cancelDeleteIncomeBtn" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

@@ -385,7 +385,7 @@
         .add-budget-btn:hover {
           background: #16a085;
           transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
         /* Overlay and Popups */
@@ -462,68 +462,63 @@
           align-items: center;
           justify-content: center;
           z-index: 1000;
-          opacity: 0;
           visibility: hidden;
-          transition: all 0.3s ease;
-          backdrop-filter: blur(5px);
+          opacity: 0;
+          transition: visibility 0.3s, opacity 0.3s ease-in-out;
         }
 
         .modal-overlay.active {
-          opacity: 1;
           visibility: visible;
+          opacity: 1;
         }
 
         .modal {
-          background: white;
+          background-color: #fff;
+          padding: 20px 30px;
           border-radius: 16px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-          width: 450px;
-          max-width: 90%;
-          padding: 30px;
-          transform: translateY(20px) scale(0.95);
-          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          max-height: 90vh;
-          overflow-y: auto;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+          width: 90%;
+          max-width: 500px;
+          transform: translateY(-50px);
+          transition: transform 0.3s ease-in-out;
+          box-sizing: border-box;
+          position: relative;
         }
 
         .modal-overlay.active .modal {
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
         }
 
         .modal-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 25px;
-          padding-bottom: 15px;
           border-bottom: 1px solid #eee;
+          padding-bottom: 15px;
+          margin-bottom: 20px;
         }
 
         .modal-title {
-          font-size: 22px;
-          font-weight: 600;
-          color: #2c3e50;
           margin: 0;
+          font-size: 20px;
+          color: #333;
         }
 
         .modal-close {
           background: none;
           border: none;
           font-size: 24px;
+          line-height: 1;
           cursor: pointer;
-          color: #95a5a6;
-          transition: all 0.2s ease;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
+          color: #aaa;
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          padding: 5px;
         }
 
         .modal-close:hover {
-          color: #e74c3c;
-          background: #f5f5f5;
+          color: #777;
         }
 
         .form-group {
@@ -533,120 +528,109 @@
         .form-label {
           display: block;
           margin-bottom: 8px;
-          font-size: 14px;
-          color: #7f8c8d;
           font-weight: 500;
+          color: #555;
         }
 
         .form-input {
           width: 100%;
-          padding: 14px 16px;
-          border: 1px solid #e0e0e0;
-          border-radius: 10px;
-          font-size: 15px;
-          transition: all 0.3s ease;
-          background: #f9f9f9;
+          padding: 12px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 16px;
+          box-sizing: border-box;
+          transition: border-color 0.2s ease;
         }
 
         .form-input:focus {
           outline: none;
-          border-color: #1abc9c;
-          box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2);
-          background: white;
+          border-color: #3ab19b;
+          box-shadow: 0 0 5px rgba(58, 177, 155, 0.3);
         }
 
         select.form-input {
+          padding: 10px;
+          height: calc(2.5em + 2px);
           appearance: none;
-          background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+          background-image: url('data:image/svg+xml;utf8,<svg fill="#333" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
           background-repeat: no-repeat;
-          background-position: right 15px center;
-          background-size: 15px;
+          background-position: right 10px center;
+          background-size: 12px;
         }
 
         .form-actions {
           display: flex;
           justify-content: flex-end;
-          gap: 15px;
-          margin-top: 30px;
-          padding-top: 20px;
+          gap: 10px;
+          padding-top: 15px;
           border-top: 1px solid #eee;
         }
 
         .btn {
-          padding: 12px 24px;
-          border-radius: 10px;
-          font-size: 15px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s ease;
+          padding: 10px 20px;
           border: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
+          border-radius: 25px;
+          cursor: pointer;
+          font-size: 16px;
+          transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
         .btn-secondary {
-          background: #f5f5f5;
-          color: #34495e;
+          background-color: #e0e0e0;
+          color: #333;
         }
 
         .btn-secondary:hover {
-          background: #e0e0e0;
+          background-color: #d5d5d5;
         }
 
         .btn-primary {
-          background: #1abc9c;
+          background-color: #1abc9c;
           color: white;
         }
 
         .btn-primary:hover {
-          background: #16a085;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(26, 188, 156, 0.3);
+          background-color: #16a085;
+          transform: translateY(-1px);
         }
 
         .btn-danger {
-          background: #e74c3c;
+          background-color: #e74c3c;
           color: white;
         }
 
         .btn-danger:hover {
-          background: #c0392b;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+          background-color: #c0392b;
+          transform: translateY(-1px);
         }
 
         /* Confirmation Dialog Specific Styles */
         .confirmation-dialog .modal-header {
+          justify-content: center;
           border-bottom: none;
-          margin-bottom: 15px;
         }
 
         .confirmation-dialog .modal-body {
           text-align: center;
-          padding: 10px 0 20px;
+          margin-bottom: 20px;
         }
 
         .confirmation-dialog .modal-body p {
           font-size: 16px;
           color: #555;
-          margin: 0;
+          margin-bottom: 20px;
         }
 
         .confirmation-dialog .icon-wrapper {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          background: #f8f9fa;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 20px;
+          color: #e74c3c;
+          font-size: 48px;
+          margin-bottom: 20px;
         }
 
         .confirmation-dialog .icon-wrapper i {
-          font-size: 28px;
-          color: #e74c3c;
+          border: 3px solid #e74c3c;
+          border-radius: 50%;
+          padding: 15px;
         }
 
         /* Profile Card Styles */
@@ -885,13 +869,17 @@
                                 $<%= String.format("%.2f", budget.getCurrentSpending()) %> / $<%= String.format("%.2f", budget.getBudgetAmount()) %>
                             </div>
                             <div class="budget-actions">
-                                <button class="budget-action-btn edit" 
-                                    onclick="openEditModal(<%= budget.getId() %>, <%= budget.getCategoryId() %>, 
-                                    <%= budget.getBudgetAmount() %>, <%= budget.getCurrentSpending() %>)">
+                                <button class="budget-action-btn edit-budget-btn"
+                                    data-id="<%= budget.getId() %>"
+                                    data-category-id="<%= budget.getCategoryId() %>"
+                                    data-budget-amount="<%= budget.getBudgetAmount() %>"
+                                    data-current-spending="<%= budget.getCurrentSpending() %>"
+                                    >
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="budget-action-btn delete" 
-                                    onclick="deleteBudget(<%= budget.getId() %>)">
+                                <button class="budget-action-btn delete-budget-btn"
+                                    data-id="<%= budget.getId() %>"
+                                    >
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -912,177 +900,245 @@
     </div>
 </div>
 
-<!-- Add Budget Modal -->
-<div class="modal-overlay" id="addBudgetModal">
+<!-- Hidden Form for Add/Edit Budget Modal -->
+<div id="budgetFormContainer" class="modal-overlay">
     <div class="modal">
         <div class="modal-header">
-            <h2 class="modal-title">Add New Budget</h2>
-            <button class="modal-close" onclick="closeAddModal()">&times;</button>
+            <h3 id="budgetModalTitle">Add Budget</h3>
+            <span class="modal-close" id="closeBudgetForm">&times;</span>
         </div>
-        <form id="addBudgetForm" method="POST" action="budget.jsp">
-            <input type="hidden" name="action" value="add">
-            
-            <div class="form-group">
-                <label for="category" class="form-label">Category</label>
-                <select id="category" name="categoryId" class="form-input" required>
-                    <option value="">Select a category</option>
-                    <% for (Category category : categories) { %>
-                        <option value="<%= category.getId() %>"><%= category.getName() %></option>
-                    <% } %>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="budgetAmount" class="form-label">Budget Amount</label>
-                <input type="number" id="budgetAmount" name="budgetAmount" class="form-input"
-                       step="0.01" min="0.01" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="currentSpending" class="form-label">Current Spending (optional)</label>
-                <input type="number" id="currentSpending" name="currentSpending" class="form-input"
-                       step="0.01" min="0" value="0">
-            </div>
-            
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-        </form>
+        <div class="modal-body">
+            <form id="budgetForm" method="POST" action="budget.jsp">
+                <input type="hidden" name="action" id="budgetFormAction">
+                <input type="hidden" name="id" id="budgetBudgetId">
+
+                <div class="form-group">
+                    <label for="budgetCategory" class="form-label">Category:</label>
+                    <%-- This will be populated dynamically by JavaScript --%>
+                    <select name="categoryId" id="budgetCategory" class="form-input" required>
+                         <option value="">Select a category</option>
+                         <% for (Category category : categories) { %>
+                             <option value="<%= category.getId() %>"><%= category.getName() %></option>
+                         <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="budgetAmount" class="form-label">Budget Amount:</label>
+                    <input type="number" name="budgetAmount" id="budgetAmount" class="form-input" step="0.01" required min="0">
+                </div>
+                 <div class="form-group">
+                    <label for="budgetCurrentSpending" class="form-label">Current Spending:</label>
+                    <input type="number" name="currentSpending" id="budgetCurrentSpending" class="form-input" step="0.01" required min="0">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Budget</button>
+                    <button type="button" id="cancelBudgetForm" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<!-- Edit Budget Modal -->
-<div class="modal-overlay" id="editBudgetModal">
-    <div class="modal">
+<!-- Hidden Confirmation Modal for Delete Budget -->
+<div id="deleteBudgetConfirmModal" class="modal-overlay">
+    <div class="modal confirmation-dialog">
         <div class="modal-header">
-            <h2 class="modal-title">Edit Budget</h2>
-            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            <h3 id="confirmBudgetModalTitle">Confirm Deletion</h3>
+            <span class="modal-close" id="closeBudgetConfirmModal">&times;</span>
         </div>
-        <form id="editBudgetForm" method="POST" action="budget.jsp">
-            <input type="hidden" name="action" value="update">
-            <input type="hidden" id="editId" name="id">
-            
-            <div class="form-group">
-                <label for="editCategory" class="form-label">Category</label>
-                <select id="editCategory" name="categoryId" class="form-input" required>
-                    <option value="">Select a category</option>
-                    <% for (Category category : categories) { %>
-                        <option value="<%= category.getId() %>"><%= category.getName() %></option>
-                    <% } %>
-                </select>
+        <div class="modal-body">
+            <div class="icon-wrapper">
+                <i class="fas fa-trash-alt"></i>
             </div>
-            
-            <div class="form-group">
-                <label for="editBudgetAmount" class="form-label">Budget Amount</label>
-                <input type="number" id="editBudgetAmount" name="budgetAmount" class="form-input"
-                       step="0.01" min="0.01" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="editCurrentSpending" class="form-label">Current Spending</label>
-                <input type="number" id="editCurrentSpending" name="currentSpending" class="form-input"
-                       step="0.01" min="0" required>
-            </div>
-            
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-            </div>
-        </form>
+            <p>Are you sure you want to delete this budget?</p>
+        </div>
+        <div class="form-actions">
+            <button type="button" id="confirmDeleteBudgetBtn" class="btn btn-danger">Yes, Delete</button>
+            <button type="button" id="cancelDeleteBudgetBtn" class="btn btn-secondary">Cancel</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // Modal functions
-    function openAddModal() {
-        document.getElementById('addBudgetModal').classList.add('active');
-    }
-    
-    function closeAddModal() {
-        document.getElementById('addBudgetModal').classList.remove('active');
-    }
-    
-    function openEditModal(id, categoryId, budgetAmount, currentSpending) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editCategory').value = categoryId;
-        document.getElementById('editBudgetAmount').value = budgetAmount;
-        document.getElementById('editCurrentSpending').value = currentSpending;
-        document.getElementById('editBudgetModal').classList.add('active');
-    }
-    
-    function closeEditModal() {
-        document.getElementById('editBudgetModal').classList.remove('active');
-    }
-    
-    function deleteBudget(id) {
-        if (confirm('Are you sure you want to delete this budget?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'budget.jsp';
-            
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'delete';
-            form.appendChild(actionInput);
-            
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'id';
-            idInput.value = id;
-            form.appendChild(idInput);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-    
-    // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('addBudgetBtn').addEventListener('click', openAddModal);
-        
-        // Form validation
-        document.getElementById('addBudgetForm').addEventListener('submit', function(e) {
-            const category = document.getElementById('category');
-            const amount = document.getElementById('budgetAmount');
-            
-            if (category.value === '') {
-                alert('Please select a category');
-                e.preventDefault();
-                return;
+        // Get form and form elements
+        const budgetFormContainer = document.getElementById('budgetFormContainer');
+        const budgetForm = document.getElementById('budgetForm');
+        const budgetFormAction = document.getElementById('budgetFormAction');
+        const budgetBudgetId = document.getElementById('budgetBudgetId');
+        const budgetCategoryInput = document.getElementById('budgetCategory');
+        const budgetAmountInput = document.getElementById('budgetAmount');
+        const budgetCurrentSpendingInput = document.getElementById('budgetCurrentSpending');
+        const budgetModalTitle = document.getElementById('budgetModalTitle');
+        const closeBudgetFormBtn = document.getElementById('closeBudgetForm');
+        const cancelBudgetFormBtn = document.getElementById('cancelBudgetForm');
+
+        // Get delete confirmation modal elements
+        const deleteBudgetConfirmModal = document.getElementById('deleteBudgetConfirmModal');
+        const confirmDeleteBudgetBtn = document.getElementById('confirmDeleteBudgetBtn');
+        const cancelDeleteBudgetBtn = document.getElementById('cancelDeleteBudgetBtn');
+        const closeBudgetConfirmModalBtn = document.getElementById('closeBudgetConfirmModal');
+        let budgetIdToDelete = null; // Variable to store the ID of the budget to be deleted
+
+        // Function to show the modal form
+        function showBudgetForm(action, budget) {
+            console.log('Showing budget form for action:', action, 'budget:', budget);
+            budgetForm.reset(); // Reset form fields
+            budgetFormAction.value = action;
+            budgetBudgetId.value = budget ? budget.id : '';
+            budgetModalTitle.textContent = action === 'add' ? 'Add Budget' : 'Edit Budget';
+
+            // Populate category dropdown for both add and edit (categories are already in JSP context)
+            // The existing JSP loop for categories will populate the select options.
+            // For edit, we need to select the correct category.
+            if (budget) {
+                // Populate form for editing
+                // Select the correct category in the dropdown
+                if (budgetCategoryInput) {
+                    budgetCategoryInput.value = budget.categoryId;
+                }
+                budgetAmountInput.value = budget.budgetAmount;
+                budgetCurrentSpendingInput.value = budget.currentSpending;
             }
-            
-            if (amount.value <= 0) {
-                alert('Budget amount must be greater than 0');
-                e.preventDefault();
-                return;
+
+            // Use class to show for CSS transitions
+            budgetFormContainer.classList.add('active');
+             console.log('Added active class to budgetFormContainer');
+        }
+
+        // Function to hide the modal form
+        function hideBudgetForm() {
+             console.log('Hiding budget form');
+            // Use class to hide for CSS transitions
+            budgetFormContainer.classList.remove('active');
+             console.log('Removed active class from budgetFormContainer');
+        }
+
+        // Add new budget - show form
+        // Assuming there is an element with ID 'addBudgetBtn'
+        const addBudgetBtn = document.getElementById('addBudgetBtn');
+        if (addBudgetBtn) {
+             addBudgetBtn.addEventListener('click', function() {
+                console.log('Add Budget button clicked');
+                showBudgetForm('add');
+            });
+        }
+
+        // Add event listeners to edit buttons
+        document.querySelectorAll('.edit-budget-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                console.log('Edit budget button clicked', button.getAttribute('data-id'));
+                const budget = {
+                    id: button.getAttribute('data-id'),
+                    categoryId: button.getAttribute('data-category-id'),
+                    budgetAmount: button.getAttribute('data-budget-amount'),
+                    currentSpending: button.getAttribute('data-current-spending')
+                };
+                showBudgetForm('update', budget);
+            });
+        });
+
+        // Add event listener for cancel button (add/edit modal)
+        if (cancelBudgetFormBtn) {
+            cancelBudgetFormBtn.addEventListener('click', hideBudgetForm);
+        }
+
+        // Add event listener for close button (X) (add/edit modal)
+        if (closeBudgetFormBtn) {
+            closeBudgetFormBtn.addEventListener('click', hideBudgetForm);
+        }
+
+        // Close modal if user clicks outside of it (add/edit modal)
+        window.addEventListener('click', function(event) {
+            if (event.target === budgetFormContainer) {
+                console.log('Clicked outside budget modal, hiding form');
+                hideBudgetForm();
             }
         });
-        
-        document.getElementById('editBudgetForm').addEventListener('submit', function(e) {
-            const category = document.getElementById('editCategory');
-            const amount = document.getElementById('editBudgetAmount');
-            const spending = document.getElementById('editCurrentSpending');
-            
-            if (category.value === '') {
-                alert('Please select a category');
-                e.preventDefault();
-                return;
+
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-budget-btn').forEach(button => {
+             // Remove any existing click listeners to prevent multiple confirmations
+            const oldClickListener = button._clickHandler; // Store the handler if needed later, or just remove
+            if (oldClickListener) {
+                button.removeEventListener('click', oldClickListener);
             }
-            
-            if (amount.value <= 0) {
-                alert('Budget amount must be greater than 0');
-                e.preventDefault();
-                return;
-            }
-            
-            if (spending.value < 0) {
-                alert('Current spending cannot be negative');
-                e.preventDefault();
-                return;
+
+            // Add the new click listener
+            const newClickListener = function() {
+                console.log('Delete budget button clicked', this.getAttribute('data-id'));
+                budgetIdToDelete = this.getAttribute('data-id'); // Store the ID
+                
+                console.log('Attempting to show delete confirm modal...');
+                console.log('deleteBudgetConfirmModal element:', deleteBudgetConfirmModal);
+                console.log('deleteBudgetConfirmModal classList before adding active:', deleteBudgetConfirmModal.classList);
+                
+                deleteBudgetConfirmModal.classList.add('active'); // Show the confirmation modal
+                
+                console.log('deleteBudgetConfirmModal classList after adding active:', deleteBudgetConfirmModal.classList); // Debugging line
+            };
+            button.addEventListener('click', newClickListener);
+            button._clickHandler = newClickListener; // Store the new handler
+        });
+
+        // Add event listeners for the delete confirmation modal
+        if (confirmDeleteBudgetBtn) {
+            confirmDeleteBudgetBtn.addEventListener('click', function() {
+                console.log('Confirm delete button clicked for budget ID:', budgetIdToDelete);
+                if (budgetIdToDelete) {
+                    // Create and submit the delete form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'budget.jsp'; // Submit to budget.jsp
+                    
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'delete'; // Action is 'delete'
+                    form.appendChild(actionInput);
+                    
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'id';
+                    idInput.value = budgetIdToDelete;
+                    form.appendChild(idInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+                deleteBudgetConfirmModal.classList.remove('active'); // Hide the modal
+            });
+        }
+
+        if (cancelDeleteBudgetBtn) {
+            cancelDeleteBudgetBtn.addEventListener('click', function() {
+                console.log('Cancel delete button clicked');
+                budgetIdToDelete = null; // Clear the stored ID
+                deleteBudgetConfirmModal.classList.remove('active'); // Hide the modal
+            });
+        }
+
+         if (closeBudgetConfirmModalBtn) {
+            closeBudgetConfirmModalBtn.addEventListener('click', function() {
+                 console.log('Close delete modal button clicked');
+                 budgetIdToDelete = null; // Clear the stored ID
+                 deleteBudgetConfirmModal.classList.remove('active'); // Hide the modal
+            });
+         }
+
+        // Close delete modal if user clicks outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === deleteBudgetConfirmModal) {
+                console.log('Clicked outside delete modal, hiding');
+                budgetIdToDelete = null; // Clear the stored ID
+                deleteBudgetConfirmModal.classList.remove('active'); // Hide the modal
             }
         });
+
+        // Remove search input logic as it's not requested for budgets yet
+        // const goalSearchInput = document.getElementById('goalSearchInput');
+        // ... search logic ...
     });
 </script>
 </body>

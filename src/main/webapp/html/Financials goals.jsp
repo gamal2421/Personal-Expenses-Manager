@@ -12,38 +12,117 @@
     }
 
     // Handle form submissions
+    String errorMessage = null; // Initialize error message
     if ("POST".equals(request.getMethod())) {
         String action = request.getParameter("action");
         int userId = Database.getUserIdByEmail(userEmail);
         
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String targetAmountStr = request.getParameter("targetAmount");
+        String currentAmountStr = request.getParameter("currentAmount");
+        String targetDateStr = request.getParameter("targetDate");
+        String idParam = request.getParameter("id");
+        
         try {
             if ("add".equals(action) || "update".equals(action)) {
-                String title = request.getParameter("title");
-                String description = request.getParameter("description");
-                double targetAmount = Double.parseDouble(request.getParameter("targetAmount"));
-                double currentAmount = Double.parseDouble(request.getParameter("currentAmount"));
-                Date targetDate = Date.valueOf(request.getParameter("targetDate"));
-                
-                if ("add".equals(action)) {
-                    Database.addSavingGoal(userId, title, description, targetAmount, targetDate, currentAmount);
+                // Server-side Validation for Add/Update
+                if (title == null || title.trim().isEmpty()) {
+                    errorMessage = "Goal title is mandatory.";
+                } else if (targetAmountStr == null || targetAmountStr.trim().isEmpty()) {
+                    errorMessage = "Target amount is mandatory.";
+                } else if (targetDateStr == null || targetDateStr.trim().isEmpty()) {
+                    errorMessage = "Target date is mandatory.";
                 } else {
-                    int id = Integer.parseInt(request.getParameter("id"));
-                    Database.updateSavingGoal(id, title, description, targetAmount, targetDate, currentAmount);
+                    try {
+                        double targetAmount = Double.parseDouble(targetAmountStr);
+                        if (targetAmount <= 0) {
+                            errorMessage = "Target amount must be positive.";
+                        }
+
+                        double currentAmount = 0; // Default to 0 if not provided or empty
+                        if (currentAmountStr != null && !currentAmountStr.trim().isEmpty()) {
+                            currentAmount = Double.parseDouble(currentAmountStr);
+                            if (currentAmount < 0) {
+                                errorMessage = "Current saved amount cannot be negative.";
+                            }
+                        }
+
+                        // Basic date format check (YYYY-MM-DD) and valid date check
+                        Date targetDate = null;
+                        if (targetDateStr != null && !targetDateStr.trim().isEmpty()) {
+                            if (!targetDateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                                errorMessage = "Target date must be in YYYY-MM-DD format.";
+                            } else {
+                                try {
+                                    targetDate = Date.valueOf(targetDateStr);
+                                } catch (IllegalArgumentException e) {
+                                    errorMessage = "Invalid target date value.";
+                                }
+                            }
+                        }
+
+                        // If no validation errors, proceed with database operation
+                        if (errorMessage == null) {
+                            if ("add".equals(action)) {
+                                Database.addSavingGoal(userId, title.trim(), description != null ? description.trim() : null, targetAmount, targetDate, currentAmount);
+                            } else { // update
+                                if (idParam != null && !idParam.isEmpty()) {
+                                    try {
+                                        int id = Integer.parseInt(idParam);
+                                        Database.updateSavingGoal(id, title.trim(), description != null ? description.trim() : null, targetAmount, targetDate, currentAmount);
+                                    } catch (NumberFormatException e) {
+                                        errorMessage = "Invalid goal ID for update.";
+                                    }
+                                } else {
+                                    errorMessage = "Goal ID not provided for update.";
+                                }
+                            }
+                        }
+
+                    } catch (NumberFormatException e) {
+                        errorMessage = "Invalid number format for amount fields.";
+                    }
                 }
             } 
             else if ("delete".equals(action)) {
-                int id = Integer.parseInt(request.getParameter("id"));
+                if (idParam != null && !idParam.isEmpty()) {
+                    try {
+                        int id = Integer.parseInt(idParam);
                 Database.deleteSavingGoal(id);
+                    } catch (NumberFormatException e) {
+                        errorMessage = "Invalid goal ID for deletion.";
+                    }
+                } else {
+                    errorMessage = "Goal ID not provided for deletion.";
+                }
             }
         } catch (Exception e) {
-            request.setAttribute("error", "Error: " + e.getMessage());
+            // Catch any other unexpected errors during database operations
+            errorMessage = "An unexpected error occurred: " + e.getMessage();
+            e.printStackTrace(); // Log the error for debugging
         }
         
+        // If there are no errors, redirect. Otherwise, set error attribute and continue to render.
+        if (errorMessage == null) {
         response.sendRedirect("Financials goals.jsp");
         return;
+        } else {
+            request.setAttribute("error", errorMessage);
+            // Re-populate form fields for display if it was an add/update attempt
+            if ("add".equals(action) || "update".equals(action)) {
+                request.setAttribute("submittedTitle", title);
+                request.setAttribute("submittedDescription", description);
+                request.setAttribute("submittedTargetAmount", targetAmountStr);
+                request.setAttribute("submittedCurrentAmount", currentAmountStr);
+                request.setAttribute("submittedTargetDate", targetDateStr);
+                request.setAttribute("submittedId", idParam);
+                request.setAttribute("submittedAction", action);
+            }
+        }
     }
 
-    // Load data
+    // Load data (This part executes for GET requests or POST requests with errors)
     int userId = Database.getUserIdByEmail(userEmail);
     User user = Database.getUserInfo(userId);
     List<SavingGoal> goals = Database.getSavingGoals(userId);
@@ -109,6 +188,11 @@
             <div class="page-title">
                 <h1>Financial Goals</h1>
             </div>
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <input type="text" id="goalSearchInput" placeholder="Search goals...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
             <div class="top-actions">
                 <%--                <div class="notification-btn">--%>
                     <%--                    <i class="fas fa-bell"></i>--%>
@@ -116,8 +200,21 @@
                     <%--                <div class="settings-btn">--%>
                     <%--                    <i class="fas fa-cog"></i>--%>
                     <%--                </div>--%>
+                <!-- Add Goal Button (Moved to top actions) -->
+                <button class="add-budget-btn" id="addGoalBtn">
+                    <i class="fas fa-plus"></i>
+                    Add Goal
+                </button>
             </div>
         </div>
+
+        <%-- Error Message Display --%>
+        <% if (request.getAttribute("error") != null) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <%= request.getAttribute("error") %>
+            </div>
+        <% } %>
 
         <div class="budget-content">
             <div class="budget-summary">
@@ -151,14 +248,17 @@
                             </div>
                             <div class="budget-actions">
                                 <button class="budget-action-btn edit-btn" 
-                                    onclick="editGoal(<%= goal.getId() %>, '<%= goal.getTitle().replace("'", "\\'") %>', 
-                                    '<%= goal.getDescription() != null ? goal.getDescription().replace("'", "\\'") : "" %>', 
-                                    <%= goal.getTargetAmount() %>, <%= goal.getCurrentAmount() %>, 
-                                    '<%= goal.getTargetDate() %>')">
+                                    data-id="<%= goal.getId() %>"
+                                    data-title="<%= goal.getTitle() %>"
+                                    data-description="<%= goal.getDescription() != null ? goal.getDescription() : "" %>"
+                                    data-targetamount="<%= goal.getTargetAmount() %>"
+                                    data-currentamount="<%= goal.getCurrentAmount() %>"
+                                    data-targetdate="<%= goal.getTargetDate() %>"
+                                    >
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="budget-action-btn delete-btn" 
-                                    onclick="deleteGoal(<%= goal.getId() %>)">
+                                    data-id="<%= goal.getId() %>">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -181,85 +281,139 @@
                 <% } %>
             </div>
 
+            <%-- Remove the button from its original position --%>
+<%--
             <button class="add-budget-btn" id="addGoalBtn">
                 <i class="fas fa-plus"></i>
                 Add Goal
             </button>
+--%>
         </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Add new goal
+        // Get form and form elements
+        const goalFormContainer = document.getElementById('goalFormContainer');
+        const goalForm = document.getElementById('goalForm');
+        const formAction = document.getElementById('formAction');
+        const goalIdInput = document.getElementById('goalId');
+        const goalTitleInput = document.getElementById('goalTitle');
+        const goalDescriptionInput = document.getElementById('goalDescription');
+        const goalTargetAmountInput = document.getElementById('goalTargetAmount');
+        const goalCurrentAmountInput = document.getElementById('goalCurrentAmount');
+        const goalTargetDateInput = document.getElementById('goalTargetDate');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeGoalFormBtn = document.getElementById('closeGoalForm');
+        const cancelGoalFormBtn = document.getElementById('cancelGoalForm');
+
+        // Get delete confirmation modal elements
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const closeConfirmModalBtn = document.getElementById('closeConfirmModal');
+        let goalIdToDelete = null; // Variable to store the ID of the goal to be deleted
+
+        // Get search input element
+        const goalSearchInput = document.getElementById('goalSearchInput');
+
+        // Function to show the modal form
+        function showGoalForm(action, goal) {
+            console.log('Showing goal form for action:', action, 'goal:', goal);
+            goalForm.reset(); // Reset form fields
+            formAction.value = action;
+            goalIdInput.value = goal ? goal.id : '';
+            modalTitle.textContent = action === 'add' ? 'Add Financial Goal' : 'Edit Financial Goal';
+
+            if (goal) {
+                // Populate form for editing
+                goalTitleInput.value = goal.title;
+                goalDescriptionInput.value = goal.description;
+                goalTargetAmountInput.value = goal.targetAmount;
+                goalCurrentAmountInput.value = goal.currentAmount;
+                goalTargetDateInput.value = goal.targetDate; // YYYY-MM-DD format expected by input type='date'
+            }
+
+            // Use class to show for CSS transitions
+            goalFormContainer.classList.add('active');
+             console.log('Added active class to goalFormContainer');
+        }
+
+        // Function to hide the modal form
+        function hideGoalForm() {
+             console.log('Hiding goal form');
+            // Use class to hide for CSS transitions
+            goalFormContainer.classList.remove('active');
+             console.log('Removed active class from goalFormContainer');
+        }
+
+        // Add new goal - show form
         document.getElementById('addGoalBtn').addEventListener('click', function() {
-            const title = prompt('Enter goal title:');
-            if (title && title.trim()) {
-                const description = prompt('Enter description (optional):') || '';
-                const targetAmount = parseFloat(prompt('Enter target amount:'));
-                if (!isNaN(targetAmount)) {
-                    const currentAmount = parseFloat(prompt('Enter current saved amount:') || 0);
-                    const targetDate = prompt('Enter target date (YYYY-MM-DD):');
-                    
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'Financials goals.jsp';
-                    
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'add';
-                    form.appendChild(actionInput);
-                    
-                    const titleInput = document.createElement('input');
-                    titleInput.type = 'hidden';
-                    titleInput.name = 'title';
-                    titleInput.value = title;
-                    form.appendChild(titleInput);
-                    
-                    const descInput = document.createElement('input');
-                    descInput.type = 'hidden';
-                    descInput.name = 'description';
-                    descInput.value = description;
-                    form.appendChild(descInput);
-                    
-                    const targetInput = document.createElement('input');
-                    targetInput.type = 'hidden';
-                    targetInput.name = 'targetAmount';
-                    targetInput.value = targetAmount;
-                    form.appendChild(targetInput);
-                    
-                    const currentInput = document.createElement('input');
-                    currentInput.type = 'hidden';
-                    currentInput.name = 'currentAmount';
-                    currentInput.value = currentAmount;
-                    form.appendChild(currentInput);
-                    
-                    const dateInput = document.createElement('input');
-                    dateInput.type = 'hidden';
-                    dateInput.name = 'targetDate';
-                    dateInput.value = targetDate;
-                    form.appendChild(dateInput);
-                    
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    alert('Please enter a valid amount');
-                }
+            console.log('Add Goal button clicked');
+            showGoalForm('add');
+        });
+
+        // Add event listeners to edit buttons
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                console.log('Edit button clicked', button.getAttribute('data-id'));
+                const goal = {
+                    id: button.getAttribute('data-id'),
+                    title: button.getAttribute('data-title'),
+                    description: button.getAttribute('data-description'),
+                    targetAmount: button.getAttribute('data-targetamount'),
+                    currentAmount: button.getAttribute('data-currentamount'),
+                    targetDate: button.getAttribute('data-targetdate')
+                };
+                showGoalForm('update', goal);
+            });
+        });
+
+        // Add event listener for cancel button
+        cancelGoalFormBtn.addEventListener('click', hideGoalForm);
+
+        // Add event listener for close button (X)
+        closeGoalFormBtn.addEventListener('click', hideGoalForm);
+
+        // Close modal if user clicks outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === goalFormContainer) {
+                console.log('Clicked outside modal, hiding form');
+                hideGoalForm();
             }
         });
-    });
 
-    function editGoal(id, currentTitle, currentDescription, currentTargetAmount, 
-                     currentAmount, currentTargetDate) {
-        const newTitle = prompt('Edit goal title:', currentTitle);
-        if (newTitle && newTitle.trim()) {
-            const newDescription = prompt('Edit description:', currentDescription || '');
-            const newTargetAmount = parseFloat(prompt('Edit target amount:', currentTargetAmount));
-            if (!isNaN(newTargetAmount)) {
-                const newCurrentAmount = parseFloat(prompt('Edit current saved amount:', currentAmount));
-                const newTargetDate = prompt('Edit target date (YYYY-MM-DD):', currentTargetDate);
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            // Remove any existing click listeners to prevent multiple confirmations
+            const oldClickListener = button._clickHandler; // Store the handler if needed later, or just remove
+            if (oldClickListener) {
+                button.removeEventListener('click', oldClickListener);
+            }
+
+            // Add the new click listener
+            const newClickListener = function() {
+                console.log('Delete button clicked', this.getAttribute('data-id'));
+                goalIdToDelete = this.getAttribute('data-id'); // Store the ID
                 
+                console.log('Attempting to show delete confirm modal...');
+                console.log('deleteConfirmModal element:', deleteConfirmModal);
+                console.log('deleteConfirmModal classList before adding active:', deleteConfirmModal.classList);
+                
+                deleteConfirmModal.classList.add('active'); // Show the confirmation modal
+                
+                console.log('deleteConfirmModal classList after adding active:', deleteConfirmModal.classList);
+            };
+            button.addEventListener('click', newClickListener);
+            button._clickHandler = newClickListener; // Store the new handler
+        });
+
+        // Add event listeners for the delete confirmation modal
+        confirmDeleteBtn.addEventListener('click', function() {
+            console.log('Confirm delete button clicked for goal ID:', goalIdToDelete);
+            if (goalIdToDelete) {
+                // Create and submit the delete form
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = 'Financials goals.jsp';
@@ -267,75 +421,127 @@
                 const actionInput = document.createElement('input');
                 actionInput.type = 'hidden';
                 actionInput.name = 'action';
-                actionInput.value = 'update';
+                actionInput.value = 'delete';
                 form.appendChild(actionInput);
                 
                 const idInput = document.createElement('input');
                 idInput.type = 'hidden';
                 idInput.name = 'id';
-                idInput.value = id;
+                idInput.value = goalIdToDelete;
                 form.appendChild(idInput);
-                
-                const titleInput = document.createElement('input');
-                titleInput.type = 'hidden';
-                titleInput.name = 'title';
-                titleInput.value = newTitle;
-                form.appendChild(titleInput);
-                
-                const descInput = document.createElement('input');
-                descInput.type = 'hidden';
-                descInput.name = 'description';
-                descInput.value = newDescription;
-                form.appendChild(descInput);
-                
-                const targetInput = document.createElement('input');
-                targetInput.type = 'hidden';
-                targetInput.name = 'targetAmount';
-                targetInput.value = newTargetAmount;
-                form.appendChild(targetInput);
-                
-                const currentInput = document.createElement('input');
-                currentInput.type = 'hidden';
-                currentInput.name = 'currentAmount';
-                currentInput.value = newCurrentAmount;
-                form.appendChild(currentInput);
-                
-                const dateInput = document.createElement('input');
-                dateInput.type = 'hidden';
-                dateInput.name = 'targetDate';
-                dateInput.value = newTargetDate;
-                form.appendChild(dateInput);
                 
                 document.body.appendChild(form);
                 form.submit();
-            } else {
-                alert('Please enter a valid amount');
             }
-        }
-    }
+            deleteConfirmModal.classList.remove('active'); // Hide the modal
+        });
 
-    function deleteGoal(id) {
-        if (confirm('Are you sure you want to delete this goal?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'Financials goals.jsp';
-            
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'delete';
-            form.appendChild(actionInput);
-            
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'id';
-            idInput.value = id;
-            form.appendChild(idInput);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
+        cancelDeleteBtn.addEventListener('click', function() {
+            console.log('Cancel delete button clicked');
+            goalIdToDelete = null; // Clear the stored ID
+            deleteConfirmModal.classList.remove('active'); // Hide the modal
+        });
+
+        closeConfirmModalBtn.addEventListener('click', function() {
+             console.log('Close delete modal button clicked');
+             goalIdToDelete = null; // Clear the stored ID
+             deleteConfirmModal.classList.remove('active'); // Hide the modal
+        });
+
+        // Close delete modal if user clicks outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === deleteConfirmModal) {
+                console.log('Clicked outside delete modal, hiding');
+                goalIdToDelete = null; // Clear the stored ID
+                deleteConfirmModal.classList.remove('active'); // Hide the modal
+            }
+        });
+
+        // Add event listener for search input
+        goalSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const goalItems = document.querySelectorAll('.budget-item'); // Assuming .budget-item is the class for each goal display item
+
+            goalItems.forEach(item => {
+                const title = item.querySelector('.budget-category').textContent.toLowerCase(); // Assuming .budget-category is the title class
+                const descriptionElement = item.querySelector('.goal-description'); // Assuming .goal-description is the description class
+                const description = descriptionElement ? descriptionElement.textContent.toLowerCase() : '';
+
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    item.style.display = ''; // Show the item
+                } else {
+                    item.style.display = 'none'; // Hide the item
+                }
+            });
+        });
+
+    });
+
+    // deleteGoal function is now redundant, will be removed in a future step
+
 </script>
+
+<!-- Hidden Form for Add/Edit Goal -->
+<div id="goalFormContainer" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Financial Goal</h3>
+            <span class="modal-close" id="closeGoalForm">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="goalForm" method="POST" action="Financials goals.jsp">
+                <input type="hidden" name="action" id="formAction">
+                <input type="hidden" name="id" id="goalId">
+
+                <div class="form-group">
+                    <label for="goalTitle" class="form-label">Title:</label>
+                    <input type="text" name="title" id="goalTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="goalDescription" class="form-label">Description:</label>
+                    <textarea name="description" id="goalDescription" class="form-input"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="goalTargetAmount" class="form-label">Target Amount:</label>
+                    <input type="number" name="targetAmount" id="goalTargetAmount" class="form-input" step="0.01" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="goalCurrentAmount" class="form-label">Current Saved Amount:</label>
+                    <input type="number" name="currentAmount" id="goalCurrentAmount" class="form-input" step="0.01" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="goalTargetDate" class="form-label">Target Date:</label>
+                    <input type="date" name="targetDate" id="goalTargetDate" class="form-input" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Goal</button>
+                    <button type="button" id="cancelGoalForm" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Confirmation Modal for Delete -->
+<div id="deleteConfirmModal" class="modal-overlay">
+    <div class="modal confirmation-dialog">
+        <div class="modal-header">
+            <h3 id="confirmModalTitle">Confirm Deletion</h3>
+            <span class="modal-close" id="closeConfirmModal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="icon-wrapper">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <p>Are you sure you want to delete this financial goal?</p>
+        </div>
+        <div class="form-actions">
+            <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Yes, Delete</button>
+            <button type="button" id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

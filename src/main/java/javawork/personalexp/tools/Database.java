@@ -174,7 +174,7 @@ public class Database {
 
     // Helper to determine income level based on total income
     private static String determineIncomeLevel(double totalIncome) {
-        // Define your income tiers here. These are just examples.
+        // Define your income tiers here.
         if (totalIncome < 20000) {
             return "Low";
         } else if (totalIncome >= 20000 && totalIncome < 50000) {
