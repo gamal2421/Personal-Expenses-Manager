@@ -187,7 +187,7 @@
 
 <!-- Add Expense Modal -->
 <div class="modal-overlay" id="addExpenseModal">
-    <div class="modal">
+    <div style="padding : 40px ;" class="modal">
         <div class="modal-header">
             <h2 class="modal-title">Add New Expense</h2>
             <button class="modal-close" onclick="closeAddModal()">&times;</button>

@@ -64,6 +64,8 @@
             font-size: 1.8rem;
             font-weight: bold;
             margin: 15px 0;
+            color: white;
+
         }
         
         .stat-card .subtext {
