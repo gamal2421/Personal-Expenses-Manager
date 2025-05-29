@@ -319,20 +319,267 @@ body, html {
   }
 }
 
-/* --- Modal Styles --- */
-.modal-overlay {
+/* Modal Styles */
+.modal {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  visibility: hidden; /* Hidden by default */
-  opacity: 0;
-  transition: visibility 0.3s, opacity 0.3s ease-in-out;
 }
 
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-title {
+  margin-top: 0;
+  color: #333;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.modal-btn-cancel {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.modal-btn-submit {
+  background: #1abc9c;
+  color: white;
+}
+
+.modal-btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.modal-btn-submit:hover {
+  background: #16a085;
+}
+
+/* --- Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: visibility 0.3s, opacity 0.3s ease-in-out;
+}
+
+.modal-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+
+.modal {
+  display: block;
+    background-color: #fff;
+    padding: 20px 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    height: 50%;
+    max-width: 500px; /* Max width for the modal */
+    transform: translateY(-50px); /* Start slightly above */
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box; /* Include padding in width */
+    position: relative; /* Needed for close button absolute positioning */
+}
+.modal-overlay.active .modal {
+    transform: translateY(0); /* Slide into view */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px; /* Increase clickable area */
+}
+
+.modal-close:hover {
+    color: #777;
+}
+
+/* --- Form Styles --- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box; /* Include padding in width */
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3ab19b;
+    box-shadow: 0 0 5px rgba(58, 177, 155, 0.3);
+}
+
+select.form-input {
+    /* Adjust padding for select */
+    padding: 10px;
+    height: calc(2.5em + 2px); /* Match height with text inputs */
+    appearance: none; /* Remove default arrow */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="#333" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid #eee; /* Optional: separator line */
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; /* Pill shape */
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-secondary {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: #d5d5d5;
+}
+
+.btn-primary {
+    background-color: #1abc9c;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #16a085;
+    transform: translateY(-1px); /* Slight press effect */
+}
+
+ .btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+    transform: translateY(-1px); /* Slight press effect */
+}
+
+/* --- Confirmation Dialog Styles --- */
+.confirmation-dialog .modal-header {
+    justify-content: center; /* Center the title */
+    border-bottom: none; /* Remove border */
+}
+
+.confirmation-dialog .modal-body {
+    text-align: center; /* Center content */
+    margin-bottom: 20px;
+}
+
+.confirmation-dialog .modal-body p {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.confirmation-dialog .icon-wrapper {
+    color: #e74c3c; /* Red color for trash icon */
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.confirmation-dialog .icon-wrapper i {
+    border: 3px solid #e74c3c;
+    border-radius: 50%;
+    padding: 15px;
+}
+
+/* Adjust form actions for confirmation dialog */
+.confirmation-dialog .form-actions {
+    justify-content: center; /* Center buttons */
+     border-top: none; /* Remove border */
+}
