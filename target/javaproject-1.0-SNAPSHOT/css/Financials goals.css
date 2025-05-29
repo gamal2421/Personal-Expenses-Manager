@@ -433,13 +433,14 @@ body, html {
   visibility: visible;
 }
 
+
 .modal {
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  width: 450px;
+  width: 500px;
   max-width: 90%;
-  padding: 30px;
+  padding: 60px;
   transform: translateY(20px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   max-height: 90vh;
