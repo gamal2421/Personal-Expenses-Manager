@@ -1,3 +1,4 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.sql.Date" %>
 <%@ page import="javawork.personalexp.tools.Database" %>
 <%@ page import="javawork.personalexp.models.User" %>
