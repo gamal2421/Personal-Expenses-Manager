@@ -1,4 +1,5 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "java.compile.nullAnalysis.mode": "automatic"
 }
