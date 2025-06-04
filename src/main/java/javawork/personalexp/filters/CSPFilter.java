@@ -12,14 +12,16 @@ import java.io.IOException;
 
 public class CSPFilter implements Filter {
 	
-	public static final String POLICY = "default-src 'self'";
+	public static final String POLICY = "default-src 'self'; frame-ancestors 'self'";
 
 	@Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
     throws IOException, ServletException {
         
     if (response instanceof HttpServletResponse) {
-      ((HttpServletResponse)response).setHeader("Content-Security-Policy", CSPFilter.POLICY);
+      HttpServletResponse httpResponse = (HttpServletResponse) response;
+      httpResponse.setHeader("Content-Security-Policy", CSPFilter.POLICY);
+      httpResponse.setHeader("X-Content-Type-Options", "nosniff");
     }
     chain.doFilter(request, response);
   }
