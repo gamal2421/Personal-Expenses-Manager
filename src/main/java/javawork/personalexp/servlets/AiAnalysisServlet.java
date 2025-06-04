@@ -28,7 +28,6 @@ import okhttp3.MediaType;
 @WebServlet("/AiAnalysisServlet")
 public class AiAnalysisServlet extends HttpServlet {
 
-    // TODO: Securely store your API key (e.g., environment variables)
     private static final String API_KEY = "AIzaSyD_oF6xKon_x4bgOvTFBjihAwrWAKSPlNk";
     private Gson gson = new Gson();
     private OkHttpClient httpClient;
@@ -112,10 +111,40 @@ public class AiAnalysisServlet extends HttpServlet {
             promptBuilder.append("No budgets set.\n");
         }
 
-        promptBuilder.append("\nProvide suggestions and improvements based on this data. Focus on helping the user manage their expenses better, potentially save money, or optimize their budget allocation. Respond in plain text.");
+        // Construct the new direct prompt
+        promptBuilder.setLength(0); // Clear previous prompt content
+        promptBuilder.append("I will give you my monthly budget.\n");
+        promptBuilder.append("Just tell me directly if it's normal or not, where to reduce spending, where to increase (if needed), and how I can improve saving — all in simple, actionable advice only.\n");
+        promptBuilder.append("No summaries or restating my numbers. No long explanations. Just give me the answer.\n\n");
+        promptBuilder.append("Here is my budget:\n");
+
+        // Add income data to the prompt
+        promptBuilder.append("Income:\n");
+        if (incomes != null && !incomes.isEmpty()) {
+            for (Income income : incomes) {
+                promptBuilder.append("- Source: ").append(income.getSource())
+                             .append(", Amount: ").append(income.getAmount()).append("\n");
+            }
+        } else {
+            promptBuilder.append("No income recorded.\n");
+        }
+
+        // Add budget data to the prompt
+        promptBuilder.append("\nBudgets:\n");
+        if (budgets != null && !budgets.isEmpty()) {
+            for (Map<String, Object> budget : budgets) {
+                promptBuilder.append("- Category: ").append(budget.get("category"))
+                             .append(", Budgeted: ").append(budget.get("budget_amount"))
+                             .append(", Spent: ").append(budget.get("current_spending")).append("\n");
+            }
+        } else {
+            promptBuilder.append("No budgets set.\n");
+        }
+
+        String prompt = promptBuilder.toString();
 
         JsonObject textPart = new JsonObject();
-        textPart.addProperty("text", promptBuilder.toString());
+        textPart.addProperty("text", prompt);
         parts.add(textPart);
 
         contents.add("parts", gson.toJsonTree(parts));

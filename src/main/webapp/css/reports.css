@@ -331,8 +331,11 @@ tr:hover td {
 
 /* Filter Section */
 .filter-section {
-    background: white;
     margin-bottom: 20px;
+    background: #f9f9f9;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .filter-section form {
@@ -379,25 +382,48 @@ tr:hover td {
 }
 
 .ai-analysis-card {
-    background: #e8f5e9; /* Light green background */
+    background: #ffffff; /* White background for cards */
     border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    border: 1px solid #c8e6c9; /* Light green border */
+    padding: 25px; /* Increased padding */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+    border: none; /* Remove border */
+    display: flex;
+    flex-direction: column;
 }
 
 .ai-analysis-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px); /* More pronounced lift on hover */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
 }
 
 .ai-analysis-card p {
     margin: 0;
     color: #333;
-    line-height: 1.6;
+    line-height: 1.7; /* Improved readability */
+    font-size: 15px;
 }
 
 .ai-analysis-card strong {
-    color: #1b5e20; /* Dark green for emphasis */
+    color: #1a73e8; /* A more prominent blue for emphasis */
+    font-weight: 600;
+}
+
+/* Optional: Style for the first card (Introductory Analysis) */
+.ai-analysis-cards .ai-analysis-card:first-child {
+    background: #e3f2fd; /* Light blue background for the first card */
+    border-left: 5px solid #2196f3; /* Accent border */
+    padding-left: 20px; /* Adjust padding due to border */
+}
+
+/* Optional: Style for subsequent suggestion cards */
+.ai-analysis-cards .ai-analysis-card:not(:first-child) {
+    /* Add specific styles if needed, e.g., a small icon or number marker */
+}
+
+/* Style for the Recommendation title within a card */
+.ai-analysis-card p strong:first-child {
+    display: block; /* Make the bold title a block element */
+    margin-bottom: 8px; /* Space below the title */
+    font-size: 16px;
 }
