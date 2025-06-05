@@ -11,4 +11,5 @@ javawork\personalexp\models\Income.class
 javawork\personalexp\models\Expense.class
 javawork\personalexp\models\Budget.class
 javawork\personalexp\models\User.class
+javawork\personalexp\servlets\AiSuggestsServlet.class
 javawork\personalexp\servlets\LogoutServlet.class

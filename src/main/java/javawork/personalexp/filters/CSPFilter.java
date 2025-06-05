@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class CSPFilter implements Filter {
 	
-	public static final String POLICY = "default-src 'self'; frame-ancestors 'self'";
+	public static final String POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data: https://e7.pngegg.com; frame-ancestors 'self'";
 
 	@Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

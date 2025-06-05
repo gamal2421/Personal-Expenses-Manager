@@ -85,7 +85,6 @@
     </dependencies>
 
     <build>
-        <finalName>ROOT</finalName>
         <plugins>
         
             <!-- Compiler Plugin -->
