@@ -172,7 +172,7 @@ public class AiSuggestsServlet extends HttpServlet {
              }
 
             currentPromptBuilder.append("\nUser Query: ").append(userMessage).append("\n");
-            currentPromptBuilder.append("\nBased on the above financial data and the conversation history, provide relevant financial suggestions or answer the user's question. Keep the response concise and actionable.");
+            currentPromptBuilder.append("\nAnalyze the provided financial data and the conversation history. Based *only* on this information, provide relevant financial suggestions or answer the user's question. If the user's question cannot be answered using *only* the provided financial data, or if it is a request for something other than financial analysis or suggestion based on this data (e.g., coding help, general knowledge), politely decline and state that you can only provide assistance related to their personal financial data within this application.");
 
             JsonObject currentUserContent = new JsonObject();
             currentUserContent.addProperty("role", "user");
