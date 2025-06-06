@@ -4,6 +4,9 @@
 <%@ page import="javawork.personalexp.models.Category" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="javawork.personalexp.models.Budget" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
 <%
     // Check if user is logged in
     String userEmail = (String) session.getAttribute("userEmail");
@@ -17,6 +20,19 @@
     User user = Database.getUserInfo(userId);
     List<Expense> expenses = Database.getExpenses(userId);
     List<Category> categories = Database.getCategories();
+    List<Budget> budgets = Database.getBudgets(userId);
+
+    // Build category -> budget amount map
+    Map<String, Double> categoryBudgets = new HashMap<>();
+    for (Budget budget : budgets) {
+        categoryBudgets.put(budget.getCategory(), budget.getBudgetAmount());
+    }
+    // Build category -> total spent map
+    Map<String, Double> categoryTotals = new HashMap<>();
+    for (Expense expense : expenses) {
+        String cat = expense.getCategoryName();
+        categoryTotals.put(cat, categoryTotals.getOrDefault(cat, 0.0) + expense.getAmount());
+    }
 
     // Handle form submission
     if ("POST".equals(request.getMethod())) {
@@ -119,7 +135,7 @@
             <li class="nav-item"><a href="budget.jsp"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
             <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
             <li class="nav-item"><a href="categories.jsp"><i class="icons fas fa-tags"></i> Categories</a></li>
-            <li class="nav-item"><a href="expenses.jsp" style="background-color: #3ab19b; color: white;"><i class="icons fas fa-shopping-cart"></i> Expenses</a></li>
+            <li class="nav-item"><a href="expenses.jsp" ><i class="icons fas fa-shopping-cart"></i> Expenses</a></li>
             <li class="nav-item"><a href="ai_suggests.jsp"><i class="icons fas fa-lightbulb"></i> AI Suggests</a></li>
             <li class="nav-item"><a href="logout.jsp"><i class="icons fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
@@ -161,17 +177,19 @@
                     </div>
                 <% } else { %>
                     <% for (Expense expense : expenses) { %>
-                    <div class="expense-item <%= (expense.getBudgetAmount() > 0 && expense.getAmount() > expense.getBudgetAmount()) ? "over-budget" : "" %>" id="expense-<%= expense.getId() %>">
+                    <% String escapedDescription = expense.getDescription().replace("\"", "\\\""); %>
+                    <% 
+                        String catName = expense.getCategoryName();
+                        double totalSpent = categoryTotals.get(catName);
+                        double budgetAmount = categoryBudgets.getOrDefault(catName, 0.0);
+                        boolean isOverBudget = budgetAmount > 0 && totalSpent > budgetAmount;
+                    %>
+                    <div class="expense-item <%= isOverBudget ? "over-budget" : "" %>" id="expense-<%= expense.getId() %>">
                         <div class="expense-header">
                             <div class="expense-category"><%= expense.getCategoryName() %></div>
                             <div class="expense-amount">-$<%= String.format("%.2f", expense.getAmount()) %></div>
                             <div class="expense-actions">
-                                <button class="action-btn edit-btn" onclick="openEditModal(
-                                    '<%= expense.getId() %>',
-                                    '<%= expense.getCategoryId() %>',
-                                    '<%= expense.getAmount() %>',
-                                    '<%= expense.getDescription().replace("'", "\\'") %>'
-                                )">
+                                <button class='action-btn edit-btn' onclick='openEditModal("<%= expense.getId() %>", "<%= expense.getCategoryId() %>", "<%= expense.getAmount() %>", "<%= escapedDescription %>")'>
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="action-btn delete-btn" onclick="deleteExpense(<%= expense.getId() %>)">
@@ -179,6 +197,9 @@
                                 </button>
                             </div>
                         </div>
+                        <% if (isOverBudget) { %>
+                        <div class="over-budget-warning" style="color: red; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center;"><i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i> Over Budget!</div>
+                        <% } %>
                         <div class="expense-description"><%= expense.getDescription() %></div>
                         <div class="expense-date"><%= dateFormat.format(expense.getDate()) %></div>
                     </div>

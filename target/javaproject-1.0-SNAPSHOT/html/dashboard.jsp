@@ -134,15 +134,15 @@
         </div>
         
         <ul class="nav-menu">
-            <li class="nav-item"><a href="dashboard.jsp"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li class="nav-item"><a href="Financials goals.jsp"><i class="fas fa-wallet"></i> Financials</a></li>
-            <li class="nav-item"><a href="reports.jsp"><i class="fas fa-file-alt"></i> Reports</a></li>
-            <li class="nav-item"><a href="budget.jsp"><i class="fas fa-money-bill-wave"></i> Budget</a></li>
-            <li class="nav-item"><a href="income.jsp"><i class="fas fa-hand-holding-usd"></i> Income</a></li>
-            <li class="nav-item"><a href="categories.jsp"><i class="fas fa-tags"></i> Categories</a></li>
-            <li class="nav-item"><a href="expenses.jsp"><i class="fas fa-shopping-cart"></i> Expenses</a></li>
-            <li class="nav-item"><a href="ai_suggests.jsp"><i class="fas fa-lightbulb"></i> AI Suggests</a></li>
-            <li class="nav-item"><a href="logout.jsp"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li class="nav-item"><a href="dashboard.jsp"><i class="icons fas fa-chart-pie"></i> Dashboard</a></li>
+            <li class="nav-item"><a href="Financials goals.jsp"><i class="icons fas fa-wallet"></i> Financials</a></li>
+            <li class="nav-item"><a href="reports.jsp"><i class="icons fas fa-file-alt"></i> Reports</a></li>
+            <li class="nav-item"><a href="budget.jsp"><i class="icons fas fa-money-bill-wave"></i> Budget</a></li>
+            <li class="nav-item"><a href="income.jsp"><i class="icons fas fa-hand-holding-usd"></i> Income</a></li>
+            <li class="nav-item"><a href="categories.jsp"><i class="icons fas fa-tags"></i> Categories</a></li>
+            <li class="nav-item"><a href="expenses.jsp"><i class="icons fas fa-shopping-cart"></i> Expenses</a></li>
+            <li class="nav-item"><a href="ai_suggests.jsp"><i class="icons fas fa-lightbulb"></i> AI Suggests</a></li>
+            <li class="nav-item"><a href="logout.jsp"><i class="icons fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </div>
 
