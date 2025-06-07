@@ -296,9 +296,9 @@
                     message: messageText,
                     history: conversationHistory // Send the whole history
                 };
-
+//https:///
                 // Send messageText and history to backend/AI (the Servlet)
-                fetch('/Personal-Expenses-Manager/ai_suggests', { // Sending to the AiSuggestsServlet
+                fetch('/personal-expenses-manager-production.up.railway.app/ai_suggests', { // Sending to the AiSuggestsServlet
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
