@@ -30,7 +30,12 @@
                     currentSpending = Double.parseDouble(spendingParam);
                 }
                 
-                boolean success = Database.addBudget(userId, categoryId, budgetAmount, currentSpending);
+                String budgetType = request.getParameter("budgetType");
+                if (budgetType == null || budgetType.isEmpty()) budgetType = "monthly";
+                String periodStart = request.getParameter("periodStart");
+                if (periodStart == null || periodStart.isEmpty()) periodStart = java.time.LocalDate.now().toString();
+                
+                boolean success = Database.addBudget(userId, categoryId, budgetAmount, currentSpending, budgetType, periodStart);
                 if (!success) {
                     request.setAttribute("error", "Failed to add budget");
                 }
@@ -47,14 +52,29 @@
                 int categoryId = Integer.parseInt(request.getParameter("categoryId"));
                 double budgetAmount = Double.parseDouble(request.getParameter("budgetAmount"));
                 double currentSpending = Double.parseDouble(request.getParameter("currentSpending"));
+                String budgetType = request.getParameter("budgetType");
+                if (budgetType == null || budgetType.isEmpty()) budgetType = "monthly";
+                String periodStart = request.getParameter("periodStart");
+                if (periodStart == null || periodStart.isEmpty()) periodStart = java.time.LocalDate.now().toString();
                 
-                boolean success = Database.updateBudget(id, categoryId, budgetAmount, currentSpending);
+                boolean success = Database.updateBudget(id, categoryId, budgetAmount, currentSpending, budgetType, periodStart);
                 if (!success) {
                     request.setAttribute("error", "Failed to update budget");
                 }
             }
         } catch (Exception e) {
-            request.setAttribute("error", "Error: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && msg.contains("monthly budget for this category and period already exists")) {
+                request.setAttribute("error", "A <b>monthly</b> budget for this category and month already exists. Please edit the existing budget or choose a different month.");
+            } else if (msg != null && msg.contains("yearly budget for this category and period already exists")) {
+                request.setAttribute("error", "A <b>yearly</b> budget for this category and year already exists. Please edit the existing budget or choose a different year.");
+            } else if (msg != null && msg.contains("midyear budget for this category and period already exists")) {
+                request.setAttribute("error", "A <b>mid-year</b> budget for this category and half-year already exists. Please edit the existing budget or choose a different half-year.");
+            } else if (msg != null && msg.contains("already exists")) {
+                request.setAttribute("error", "A budget for this period already exists! Please choose a different period or edit the existing budget.");
+            } else {
+                request.setAttribute("error", "Error: " + msg);
+            }
         }
         
         response.sendRedirect("budget.jsp");
@@ -878,6 +898,8 @@
                                     data-category-id="<%= budget.getCategoryId() %>"
                                     data-budget-amount="<%= budget.getBudgetAmount() %>"
                                     data-current-spending="<%= budget.getCurrentSpending() %>"
+                                    data-budget-type="<%= budget.getBudgetType() %>"
+                                    data-period-start="<%= budget.getPeriodStart() %>"
                                     >
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -887,6 +909,11 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+                        </div>
+                        <div class="budget-meta" style="font-size: 13px; color: #888; margin-bottom: 6px;">
+                            <span>Type: <%= budget.getBudgetType() != null ? budget.getBudgetType().substring(0,1).toUpperCase() + budget.getBudgetType().substring(1) : "N/A" %></span>
+                            &nbsp;|&nbsp;
+                            <span>Period Start: <%= budget.getPeriodStart() != null ? budget.getPeriodStart() : "N/A" %></span>
                         </div>
                         <div class="progress-container">
                             <div class="progress-bar <%= percentage > 90 ? "danger" : percentage > 75 ? "warning" : "" %>" 
@@ -934,6 +961,18 @@
                     <label for="budgetCurrentSpending" class="form-label">Current Spending:</label>
                     <input type="number" name="currentSpending" id="budgetCurrentSpending" class="form-input" step="0.01" required min="0">
                 </div>
+                <div class="form-group">
+                    <label for="budgetType" class="form-label">Budget Type:</label>
+                    <select name="budgetType" id="budgetType" class="form-input" required>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                        <option value="midyear">Mid-Year (6 months)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="periodStart" class="form-label">Period Start:</label>
+                    <input type="date" name="periodStart" id="periodStart" class="form-input" required>
+                </div>
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save Budget</button>
@@ -977,6 +1016,8 @@
         const budgetModalTitle = document.getElementById('budgetModalTitle');
         const closeBudgetFormBtn = document.getElementById('closeBudgetForm');
         const cancelBudgetFormBtn = document.getElementById('cancelBudgetForm');
+        const budgetTypeInput = document.getElementById('budgetType');
+        const periodStartInput = document.getElementById('periodStart');
 
         // Get delete confirmation modal elements
         const deleteBudgetConfirmModal = document.getElementById('deleteBudgetConfirmModal');
@@ -1004,6 +1045,19 @@
                 }
                 budgetAmountInput.value = budget.budgetAmount;
                 budgetCurrentSpendingInput.value = budget.currentSpending;
+                if (budgetTypeInput) {
+                    budgetTypeInput.value = budget.budgetType || 'monthly';
+                }
+                if (periodStartInput) {
+                    periodStartInput.value = budget.periodStart || new Date().toISOString().split('T')[0];
+                }
+            } else {
+                if (budgetTypeInput) {
+                    budgetTypeInput.value = 'monthly';
+                }
+                if (periodStartInput) {
+                    periodStartInput.value = new Date().toISOString().split('T')[0];
+                }
             }
 
             // Use class to show for CSS transitions
@@ -1037,7 +1091,9 @@
                     id: button.getAttribute('data-id'),
                     categoryId: button.getAttribute('data-category-id'),
                     budgetAmount: button.getAttribute('data-budget-amount'),
-                    currentSpending: button.getAttribute('data-current-spending')
+                    currentSpending: button.getAttribute('data-current-spending'),
+                    budgetType: button.getAttribute('data-budget-type'),
+                    periodStart: button.getAttribute('data-period-start')
                 };
                 showBudgetForm('update', budget);
             });

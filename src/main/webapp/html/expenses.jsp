@@ -7,6 +7,7 @@
 <%@ page import="javawork.personalexp.models.Budget" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="java.time.LocalDate" %>
 <%
     // Check if user is logged in
     String userEmail = (String) session.getAttribute("userEmail");
@@ -24,8 +25,19 @@
 
     // Build category -> budget amount map
     Map<String, Double> categoryBudgets = new HashMap<>();
+    Map<String, String> categoryBudgetTypes = new HashMap<>();
+    Map<String, String> categoryBudgetPeriods = new HashMap<>();
     for (Budget budget : budgets) {
-        categoryBudgets.put(budget.getCategory(), budget.getBudgetAmount());
+        // Only use the current period/monthly for now (can expand logic as needed)
+        if ("monthly".equals(budget.getBudgetType())) {
+            LocalDate period = LocalDate.parse(budget.getPeriodStart());
+            if (period.getYear() == java.time.LocalDate.now().getYear() && period.getMonthValue() == java.time.LocalDate.now().getMonthValue()) {
+                categoryBudgets.put(budget.getCategory(), budget.getBudgetAmount());
+                categoryBudgetTypes.put(budget.getCategory(), budget.getBudgetType());
+                categoryBudgetPeriods.put(budget.getCategory(), budget.getPeriodStart());
+            }
+        }
+        // Optionally add logic for yearly/midyear if you want to support those too
     }
     // Build category -> total spent map
     Map<String, Double> categoryTotals = new HashMap<>();
@@ -183,6 +195,8 @@
                         double totalSpent = categoryTotals.get(catName);
                         double budgetAmount = categoryBudgets.getOrDefault(catName, 0.0);
                         boolean isOverBudget = budgetAmount > 0 && totalSpent > budgetAmount;
+                        String budgetType = categoryBudgetTypes.get(catName);
+                        String budgetPeriod = categoryBudgetPeriods.get(catName);
                     %>
                     <div class="expense-item <%= isOverBudget ? "over-budget" : "" %>" id="expense-<%= expense.getId() %>">
                         <div class="expense-header">
@@ -197,6 +211,13 @@
                                 </button>
                             </div>
                         </div>
+                        <% if (budgetType != null && budgetPeriod != null) { %>
+                        <div class="budget-meta" style="font-size: 12px; color: #888; margin-bottom: 4px;">
+                            <span>Budget Type: <%= budgetType.substring(0,1).toUpperCase() + budgetType.substring(1) %></span>
+                            &nbsp;|&nbsp;
+                            <span>Period Start: <%= budgetPeriod %></span>
+                        </div>
+                        <% } %>
                         <% if (isOverBudget) { %>
                         <div class="over-budget-warning" style="color: red; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center;"><i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i> Over Budget!</div>
                         <% } %>
@@ -224,9 +245,24 @@
                 <label for="category" class="form-label">Category</label>
                 <select id="category" name="categoryId" class="form-input" required>
                     <option value="">Select a category</option>
-                    <% for (Category category : categories) { %>
-                        <option value="<%= category.getId() %>"><%= category.getName() %></option>
-                    <% } %>
+                    <%
+                        java.util.Set<String> seenCategories = new java.util.HashSet<>();
+                        for (Category category : categories) {
+                            String catName = category.getName();
+                            if (!seenCategories.contains(catName)) {
+                                seenCategories.add(catName);
+                                String label = catName;
+                                String type = categoryBudgetTypes.get(catName);
+                                String period = categoryBudgetPeriods.get(catName);
+                                if (type != null && period != null) {
+                                    label += " (Type: " + type.substring(0,1).toUpperCase() + type.substring(1) + ", Period: " + period + ")";
+                                }
+                    %>
+                        <option value="<%= category.getId() %>"><%= label %></option>
+                    <%
+                            }
+                        }
+                    %>
                 </select>
             </div>
             
@@ -265,9 +301,24 @@
                 <label for="editCategory" class="form-label">Category</label>
                 <select id="editCategory" name="categoryId" class="form-input" required>
                     <option value="">Select a category</option>
-                    <% for (Category category : categories) { %>
-                        <option value="<%= category.getId() %>"><%= category.getName() %></option>
-                    <% } %>
+                    <%
+                        seenCategories = new java.util.HashSet<>();
+                        for (Category category : categories) {
+                            String catName = category.getName();
+                            if (!seenCategories.contains(catName)) {
+                                seenCategories.add(catName);
+                                String label = catName;
+                                String type = categoryBudgetTypes.get(catName);
+                                String period = categoryBudgetPeriods.get(catName);
+                                if (type != null && period != null) {
+                                    label += " (Type: " + type.substring(0,1).toUpperCase() + type.substring(1) + ", Period: " + period + ")";
+                                }
+                    %>
+                        <option value="<%= category.getId() %>"><%= label %></option>
+                    <%
+                            }
+                        }
+                    %>
                 </select>
             </div>
             

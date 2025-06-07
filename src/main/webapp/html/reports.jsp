@@ -242,6 +242,8 @@
                         <th>ID</th>
                         <th>Category</th>
                         <th>Your Budget</th>
+                        <th>Type</th>
+                        <th>Period Start</th>
                         <th>Avg Budget (<%= userIncomeLevel != null ? userIncomeLevel : "N/A" %>)</th>
                         <th>Comparison</th>
                         <th>Rank</th>
@@ -257,6 +259,8 @@
                             double currentSpending = (Double) budget.get("current_spending");
                             double remaining = budgetAmount - currentSpending;
                             String categoryName = (String) budget.get("category");
+                            String budgetType = budget.get("budget_type") != null ? budget.get("budget_type").toString() : "N/A";
+                            String periodStart = budget.get("period_start") != null ? budget.get("period_start").toString() : "N/A";
                             
                             // Calculate comparison and rank using average budget for income level
                             String comparison = "N/A";
@@ -286,6 +290,8 @@
                         <td><%= budget.get("id") %></td>
                         <td><%= categoryName %></td>
                         <td>$<%= String.format("%.2f", budgetAmount) %></td>
+                        <td><%= budgetType.substring(0,1).toUpperCase() + budgetType.substring(1) %></td>
+                        <td><%= periodStart %></td>
                         <td><%= String.format("%.2f", averageBudgetForIncomeLevel) %></td>
                         <td><%= comparison %></td>
                         <td><span class="badge <%= rankClass %>"><%= rank %></span></td>
@@ -298,7 +304,7 @@
                     <% } 
                     } else { %>
                     <tr>
-                        <td colspan="9" class="empty-state">No budgets found</td>
+                        <td colspan="11" class="empty-state">No budgets found</td>
                     </tr>
                     <% } %>
                 </tbody>

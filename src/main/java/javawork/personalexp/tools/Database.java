@@ -592,7 +592,7 @@ public class Database {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                  "SELECT id, category_id, category, budget_amount, current_spending, " +
-                 "created_at, updated_at FROM budgets WHERE user_id = ? ORDER BY created_at DESC")) {
+                 "created_at, updated_at, budget_type, period_start FROM budgets WHERE user_id = ? ORDER BY created_at DESC")) {
             
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
@@ -607,6 +607,8 @@ public class Database {
                 budget.setCurrentSpending(rs.getDouble("current_spending"));
                 budget.setCreatedAt(rs.getString("created_at"));
                 budget.setUpdatedAt(rs.getString("updated_at"));
+                budget.setBudgetType(rs.getString("budget_type"));
+                budget.setPeriodStart(rs.getString("period_start"));
                 budgets.add(budget);
             }
         } catch (SQLException e) {
@@ -615,7 +617,7 @@ public class Database {
         return budgets;
     }
 
-    public static boolean updateBudget(int id, int categoryId, double budgetAmount, double currentSpending) {
+    public static boolean updateBudget(int id, int categoryId, double budgetAmount, double currentSpending, String budgetType, String periodStart) {
         try (Connection conn = getConnection()) {
             // Get category name
             String categoryName = "";
@@ -632,14 +634,16 @@ public class Database {
 
             // Update budget
             String updateSql = "UPDATE budgets SET category_id = ?, category = ?, " +
-                             "budget_amount = ?, current_spending = ?, updated_at = CURRENT_TIMESTAMP " +
+                             "budget_amount = ?, current_spending = ?, updated_at = CURRENT_TIMESTAMP, budget_type = ?, period_start = ? " +
                              "WHERE id = ?";
             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 updateStmt.setInt(1, categoryId);
                 updateStmt.setString(2, categoryName);
                 updateStmt.setDouble(3, budgetAmount);
                 updateStmt.setDouble(4, currentSpending);
-                updateStmt.setInt(5, id);
+                updateStmt.setString(5, budgetType);
+                updateStmt.setDate(6, java.sql.Date.valueOf(periodStart));
+                updateStmt.setInt(7, id);
                 
                 return updateStmt.executeUpdate() > 0;
             }
@@ -654,7 +658,7 @@ public class Database {
         }
     }
 
-    public static boolean addBudget(int userId, int categoryId, double budgetAmount, double currentSpending) {
+    public static boolean addBudget(int userId, int categoryId, double budgetAmount, double currentSpending, String budgetType, String periodStart) {
         try (Connection conn = getConnection()) {
             // First get the category name
             String categoryName = "";
@@ -670,14 +674,16 @@ public class Database {
             }
 
             // Then insert the budget
-            String insertSql = "INSERT INTO budgets (user_id, category_id, category, budget_amount, current_spending) " +
-                             "VALUES (?, ?, ?, ?, ?)";
+            String insertSql = "INSERT INTO budgets (user_id, category_id, category, budget_amount, current_spending, budget_type, period_start) " +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, userId);
                 insertStmt.setInt(2, categoryId);
                 insertStmt.setString(3, categoryName);
                 insertStmt.setDouble(4, budgetAmount);
                 insertStmt.setDouble(5, currentSpending);
+                insertStmt.setString(6, budgetType);
+                insertStmt.setDate(7, java.sql.Date.valueOf(periodStart));
                 
                 return insertStmt.executeUpdate() > 0;
             }
@@ -932,8 +938,7 @@ public class Database {
     public static List<Map<String, Object>> getAllBudgets(int userId, int year, int month) {
         List<Map<String, Object>> budgets = new ArrayList<>();
         try (Connection conn = getConnection()) {
-            String sql = "SELECT id, category, budget_amount, current_spending, " +
-                        "created_at, updated_at FROM budgets WHERE user_id = ? AND created_at <= (MAKE_DATE(?, ?, 1) + interval '1 month' - interval '1 day') ";
+            String sql = "SELECT id, category, budget_amount, current_spending, created_at, updated_at, budget_type, period_start FROM budgets WHERE user_id = ? AND created_at <= (MAKE_DATE(?, ?, 1) + interval '1 month' - interval '1 day')";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 stmt.setInt(2, year);
@@ -947,6 +952,8 @@ public class Database {
                     budget.put("current_spending", rs.getDouble("current_spending"));
                     budget.put("created_at", rs.getDate("created_at"));
                     budget.put("updated_at", rs.getDate("updated_at"));
+                    budget.put("budget_type", rs.getString("budget_type"));
+                    budget.put("period_start", rs.getDate("period_start"));
                     budgets.add(budget);
                 }
             }
