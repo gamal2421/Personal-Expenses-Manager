@@ -9,14 +9,4 @@
         </cookie-config>
     </session-config>
 
-    <!-- Servlet mapping for AiAnalysisServlet -->
-    <servlet>
-        <servlet-name>AiAnalysisServlet</servlet-name>
-        <servlet-class>javawork.personalexp.servlets.AiAnalysisServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AiAnalysisServlet</servlet-name>
-        <url-pattern>/ai_suggests</url-pattern>
-    </servlet-mapping>
-
 </web-app>

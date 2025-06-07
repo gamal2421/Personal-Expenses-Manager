@@ -336,7 +336,7 @@
                         <td>
                             <div class="progress-container">
                                 <% String progressStyle = "width: " + String.format("%.1f", progress) + "%;"; %>
-                                <div class="progress-bar <%= percentage > 90 ? "danger" : percentage > 75 ? "warning" : "" %>"
+                                <div class="progress-bar <%= progress > 90 ? "danger" : progress > 75 ? "warning" : "" %>"
                                     style="<%= progressStyle %>"></div>
                             </div>
                             <%= String.format("%.1f", progress) %>%
