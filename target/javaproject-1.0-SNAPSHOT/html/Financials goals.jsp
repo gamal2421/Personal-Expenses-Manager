@@ -156,7 +156,7 @@
 <!-- Optional: Web Manifest for PWA -->
 <link rel="manifest" href="/icons/site.webmanifest">
 
-    <link href="/Personal-Expenses-Manager/css/all.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="../css/Financials goals.css">
 </head>

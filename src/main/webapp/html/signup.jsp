@@ -19,7 +19,7 @@
 <link rel="manifest" href="/icons/site.webmanifest">
 
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
     <link rel="stylesheet" href="../css/sign-up.css">
 
 </head>

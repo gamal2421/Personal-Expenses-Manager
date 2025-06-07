@@ -56,7 +56,7 @@
     <!-- Optional: Web Manifest for PWA -->
     <link rel="manifest" href="/icons/site.webmanifest">
 
-    <link href="/Personal-Expenses-Manager/css/all.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../css/dashboard.css">
     <style>
