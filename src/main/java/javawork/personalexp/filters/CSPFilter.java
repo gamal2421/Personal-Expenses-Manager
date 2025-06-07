@@ -1,4 +1,4 @@
-/*package javawork.personalexp.filters;
+package javawork.personalexp.filters;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterConfig;
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class CSPFilter implements Filter {
 	
-	public static final String POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https://e7.pngegg.com; frame-ancestors 'self'";
+	public static final String POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: https://e7.pngegg.com; frame-ancestors 'self'";
 
 	@Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -32,5 +32,4 @@ public class CSPFilter implements Filter {
 	@Override
   public void destroy() { }
 
-} 
-  */
+}

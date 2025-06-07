@@ -18,19 +18,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <meta name="description" content="Admin dashboard for Personal Expenses Manager. Manage users, categories, and application settings.">
+    <meta name="keywords" content="admin, dashboard, user management, category management, application settings, personal expenses manager">
+    <meta name="author" content="PEM Team | ntg school">
     
-
     <!-- Apple Touch Icon (iOS) -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-<!-- Android Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
-<!-- Optional: Web Manifest for PWA -->
-<link rel="manifest" href="/icons/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="../icons/android-chrome-512x512.png">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
+    <!-- Optional: Web Manifest for PWA -->
+    <link rel="manifest" href="../icons/site.webmanifest">
 
+    
    <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/admindash.css">

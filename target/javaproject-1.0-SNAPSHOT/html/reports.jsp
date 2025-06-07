@@ -92,17 +92,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   
-<!-- Apple Touch Icon (iOS) -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-<!-- Android Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
-<!-- Optional: Web Manifest for PWA -->
-<link rel="manifest" href="/icons/site.webmanifest">
+    <!-- Apple Touch Icon (iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="../icons/android-chrome-512x512.png">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
+    <!-- Optional: Web Manifest for PWA -->
+    <link rel="manifest" href="../icons/site.webmanifest">
+  
+
   <title>Personal Expenses Manager - Report</title>
+  <meta name="description" content="View comprehensive financial reports including income, budget, spending, and savings goals with Personal Expenses Manager.">
+  <meta name="keywords" content="financial report, expense report, income report, budget report, savings report, personal finance, money management">
+  <meta name="author" content="PEM Team | ntg school">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= request.getRequestURL() %>">
+  <meta property="og:title" content="Personal Expenses Manager - Reports">
+  <meta property="og:description" content="View comprehensive financial reports including income, budget, spending, and savings goals with Personal Expenses Manager.">
+  <meta property="og:image" content="<%= request.getContextPath() %>/icons/android-chrome-512x512.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="<%= request.getRequestURL() %>">
+  <meta property="twitter:title" content="Personal Expenses Manager - Reports">
+  <meta property="twitter:description" content="View comprehensive financial reports including income, budget, spending, and savings goals with Personal Expenses Manager.">
+  <meta property="twitter:image" content="<%= request.getContextPath() %>/icons/android-chrome-512x512.png">
+
    <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/reports.css">

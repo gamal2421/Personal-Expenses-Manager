@@ -62,17 +62,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Expenses Manager - Income</title>
+    <meta name="description" content="Manage and track your income sources with Personal Expenses Manager. View income distribution and total earnings.">
+    <meta name="keywords" content="income, income tracker, personal finance, money management, earnings, salary, revenue">
+    <meta name="author" content="PEM Team | ntg school">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= request.getRequestURL() %>">
+    <meta property="og:title" content="Personal Expenses Manager - Income">
+    <meta property="og:description" content="Manage and track your income sources with Personal Expenses Manager. View income distribution and total earnings.">
+    <meta property="og:image" content="<%= request.getContextPath() %>/icons/android-chrome-512x512.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="<%= request.getRequestURL() %>">
+    <meta property="twitter:title" content="Personal Expenses Manager - Income">
+    <meta property="twitter:description" content="Manage and track your income sources with Personal Expenses Manager. View income distribution and total earnings.">
+    <meta property="twitter:image" content="<%= request.getContextPath() %>/icons/android-chrome-512x512.png">
     
     <!-- Apple Touch Icon (iOS) -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-<!-- Android Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
-<!-- Optional: Web Manifest for PWA -->
-<link rel="manifest" href="/icons/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="../icons/android-chrome-512x512.png">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
+    <!-- Optional: Web Manifest for PWA -->
+    <link rel="manifest" href="../icons/site.webmanifest">
+
+    
 
    <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -183,13 +202,9 @@
         const ctx = document.getElementById('incomeChart').getContext('2d');
         
         const incomeData = {
-            labels: [<%= incomeBySource.keySet().stream()
-                .map(source -> "'" + source + "'")
-                .collect(java.util.stream.Collectors.joining(", ")) %>],
+            labels: [<%= incomeBySource.keySet().stream().map(source -> "'" + source + "'").collect(java.util.stream.Collectors.joining(", ")) %>],
             datasets: [{
-                data: [<%= incomeBySource.values().stream()
-                .map(String::valueOf)
-                .collect(java.util.stream.Collectors.joining(", ")) %>],
+                data: [<%= incomeBySource.values().stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(", ")) %>],
                 backgroundColor: [
                     '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
                     '#9966FF', '#FF9F40', '#8AC24A', '#607D8B',
