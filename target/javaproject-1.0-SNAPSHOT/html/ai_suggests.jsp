@@ -298,7 +298,7 @@
                 };
 //https:///
                 // Send messageText and history to backend/AI (the Servlet)
-                fetch('/personal-expenses-manager-production.up.railway.app/ai_suggests', { // Sending to the AiSuggestsServlet
+                fetch('<%= request.getContextPath() %>/ai_suggests', { // Sending to the AiSuggestsServlet
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

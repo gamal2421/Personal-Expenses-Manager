@@ -335,7 +335,9 @@
                         <td>$<%= String.format("%.2f", current) %></td>
                         <td>
                             <div class="progress-container">
-                                <div class="progress-bar" style="width: <%= String.format("%.1f", progress) %>%;"></div>
+                                <% String progressStyle = "width: " + String.format("%.1f", progress) + "%;"; %>
+                                <div class="progress-bar <%= percentage > 90 ? "danger" : percentage > 75 ? "warning" : "" %>"
+                                    style="<%= progressStyle %>"></div>
                             </div>
                             <%= String.format("%.1f", progress) %>%
                         </td>
@@ -407,7 +409,7 @@
         // TODO: Revert to using <%= request.getContextPath() %> for production
         const contextPath = '/Personal-Expenses-Manager'; // Hardcoded for testing
         const servletPath = '/AiAnalysisServlet';
-        const servletUrl = contextPath + servletPath + '?year=' + year + '&month=' + month;
+        const servletUrl = '<%= request.getContextPath() %>' + servletPath + '?year=' + year + '&month=' + month;
 
         console.log('Fetching AI analysis from: ' + servletUrl);
 
