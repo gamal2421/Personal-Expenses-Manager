@@ -5,7 +5,6 @@ javawork\personalexp\models\Category.class
 javawork\personalexp\servlets\AiAnalysisServlet.class
 javawork\personalexp\servlets\CategoryDeleteServlet.class
 javawork\personalexp\servlets\CategoryEditServlet.class
-javawork\personalexp\filters\CSPFilter.class
 javawork\personalexp\models\DashboardData.class
 javawork\personalexp\models\Income.class
 javawork\personalexp\models\Expense.class

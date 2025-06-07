@@ -102,8 +102,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <!-- Apple Touch Icon (iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <!-- Optional: Web Manifest for PWA -->
+    <link rel="manifest" href="/icons/site.webmanifest">
+    
+
+
+
     <title>AI Suggestions</title>
     <link rel="stylesheet" href="../css/all.min.css"> <%-- Link to Font Awesome --%>
+
+
     <link rel="stylesheet" href="../css/dashboard.css"> <%-- Link to dashboard styles --%>
     <style>
         /* Improved chat styling */

@@ -1,4 +1,4 @@
-package javawork.personalexp.filters;
+/*package javawork.personalexp.filters;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterConfig;
@@ -33,3 +33,4 @@ public class CSPFilter implements Filter {
   public void destroy() { }
 
 } 
+  */

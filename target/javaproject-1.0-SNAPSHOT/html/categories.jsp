@@ -21,9 +21,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Expenses Manager - Categories</title>
-    
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://e7.pngegg.com;">
 
     <!-- Apple Touch Icon (iOS) -->
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
@@ -44,13 +41,14 @@
         .admin-only {
             display: none;
         }
-        
-        <% if (isAdmin) { %>
-            .admin-only {
-                display: block;
-            }
-        <% } %>
     </style>
+    <% if (isAdmin) { %>
+    <style>
+        .admin-only {
+            display: block !important; /* Use !important to ensure it overrides the 'display: none' */
+        }
+    </style>
+    <% } %>
 </head>
 <body>
 <div class="main-page">

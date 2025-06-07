@@ -44,23 +44,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Expenses Manager - Dashboard</title>
     
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://e7.pngegg.com;">
-
     <!-- Apple Touch Icon (iOS) -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-<!-- Android Chrome -->
- 
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
-<!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/android-chrome-512x512.png">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
 
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
-
-<!-- Optional: Web Manifest for PWA -->
-
-<link rel="manifest" href="/icons/site.webmanifest">
+    <!-- Optional: Web Manifest for PWA -->
+    <link rel="manifest" href="/icons/site.webmanifest">
 
     <link href="/Personal-Expenses-Manager/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -203,8 +197,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Prepare chart data from JSP variables
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const expenseData = <%= new JSONArray(expenseData) %>;
-        const incomeData = <%= new JSONArray(incomeData) %>;
+        const expenseData = JSON.parse('<%= expenseJson.toString().replace("\'", "\\\'") %>');
+        const incomeData = JSON.parse('<%= incomeJson.toString().replace("\'", "\\\'") %>');
         
         console.log("Expense Data:", expenseData);
         console.log("Income Data:", incomeData);
