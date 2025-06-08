@@ -127,9 +127,6 @@
     <meta property="twitter:image" content="<%= request.getContextPath() %>/icons/android-chrome-512x512.png">
 
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://e7.pngegg.com;">
-
-    <!-- Apple Touch Icon (iOS) -->
     <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
     <!-- Android Chrome -->
     <link rel="icon" type="image/png" sizes="192x192" href="../icons/android-chrome-192x192.png">

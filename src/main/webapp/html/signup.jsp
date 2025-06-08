@@ -48,7 +48,7 @@
         <div class="left-section">
             <h1>Welcome Back!</h1>
             <p>To keep connected with us please login with your personal info</p>
-            <button class="signin-btn" onclick="window.location.href='login.jsp'">SIGN IN</button>
+            <button class="signin-btn" id="signinBtn">SIGN IN</button>
         </div>
         <div class="right-section">
             <h2>Create Account</h2>
@@ -82,11 +82,11 @@
             %>
 
             <% if (errorMsg != null) { %>
-                <p style="color:red;"><%= errorMsg %></p>
+                <p class="error-message" ><%= errorMsg %></p>
             <% } %>
 
         </div>
     </div>
-
+    <script src="../js/signup.js"></script>
 </body>
 </html>

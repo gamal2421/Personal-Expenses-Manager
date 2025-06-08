@@ -1,6 +1,7 @@
 package javawork.personalexp.servlets;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,12 +22,16 @@ public class CategoryAddServlet extends HttpServlet {
         if (userEmail != null && categoryName != null && !categoryName.trim().isEmpty()) {
             int userId = Database.getUserIdByEmail(userEmail);
 
-            boolean success = Database.addCategory(userId, categoryName);
+            try {
+                boolean success = Database.addCategory(userId, categoryName);
 
-            if (success) {
-                response.getWriter().write("Success");
-            } else {
-                response.getWriter().write("Fail");
+                if (success) {
+                    response.getWriter().write("Success");
+                } else {
+                    response.getWriter().write("Failed to add category.");
+                }
+            } catch (SQLException e) {
+                response.getWriter().write(e.getMessage());
             }
         } else {
             response.getWriter().write("Fail");

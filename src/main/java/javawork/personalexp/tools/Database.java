@@ -18,6 +18,7 @@ import javawork.personalexp.models.SavingGoal;
 import javawork.personalexp.models.User;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class Database {
     // Database connection details
@@ -71,8 +72,9 @@ public class Database {
         try (Connection conn = getConnection()) {
             String sql = "INSERT INTO users (username, password, email, authentication_enabled) VALUES (?, ?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
                 stmt.setString(1, username);
-                stmt.setString(2, password);
+                stmt.setString(2, hashedPassword);
                 stmt.setString(3, email);
                 stmt.setBoolean(4, true);
                 stmt.executeUpdate();
@@ -86,13 +88,13 @@ public class Database {
     public static boolean isValidUser(String email, String password) {
         boolean isValid = false;
         try (Connection conn = getConnection()) {
-            String sql = "SELECT COUNT(*) FROM users WHERE email = ? AND password = ?";
+            String sql = "SELECT password FROM users WHERE email = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, email);
-                stmt.setString(2, password);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
-                    isValid = rs.getInt(1) > 0;
+                    String hashedPassword = rs.getString("password");
+                    isValid = BCrypt.checkpw(password, hashedPassword);
                 }
             }
         } catch (SQLException e) {
@@ -447,7 +449,7 @@ public class Database {
         return categories;
     }
 
-    public static boolean addCategory(int userId, String categoryName) {
+    public static boolean addCategory(int userId, String categoryName) throws SQLException {
         try (Connection conn = getConnection()) {
             String sql = "INSERT INTO categories (user_id, name) VALUES (?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -456,17 +458,16 @@ public class Database {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            String friendly = getFriendlySqlError(e);
-            if (friendly != null) {
-                logger.log(Level.WARNING, friendly);
+            if (e.getSQLState().equals("23505")) { // Unique violation
+                throw new SQLException("A category with this name already exists.", e);
             } else {
                 logger.log(Level.SEVERE, "Error adding category for user: " + userId, e);
+                throw e;
             }
-            return false;
         }
     }
 
-    public static boolean updateCategoryName(int categoryId, String newName) {
+    public static boolean updateCategoryName(int categoryId, String newName) throws SQLException {
         try (Connection conn = getConnection()) {
             String sql = "UPDATE categories SET name = ? WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -475,12 +476,16 @@ public class Database {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error updating category ID: " + categoryId, e);
-            return false;
+            if (e.getSQLState().equals("23505")) { // Unique violation
+                throw new SQLException("A category with this name already exists.", e);
+            } else {
+                logger.log(Level.SEVERE, "Error updating category ID: " + categoryId, e);
+                throw e;
+            }
         }
     }
 
-    public static boolean deleteCategory(int categoryId) {
+    public static boolean deleteCategory(int categoryId) throws SQLException {
         try (Connection conn = getConnection()) {
             String sql = "DELETE FROM categories WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -488,8 +493,12 @@ public class Database {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error deleting category ID: " + categoryId, e);
-            return false;
+            if (e.getSQLState().equals("23503")) { // Foreign key violation
+                throw new SQLException("This category is in use and cannot be deleted.", e);
+            } else {
+                logger.log(Level.SEVERE, "Error deleting category ID: " + categoryId, e);
+                throw e;
+            }
         }
     }
 

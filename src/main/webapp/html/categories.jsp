@@ -14,6 +14,11 @@
     User user = Database.getUserInfo(userId);
     List<Category> categories = Database.getCategories(); // Changed to get all categories
     boolean isAdmin = Database.isAdmin(userId);
+
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    if (errorMessage != null) {
+        session.removeAttribute("errorMessage"); // Clear the message after displaying
+    }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -124,6 +129,12 @@
                 <% } %>
             </div>
 
+            <% if (errorMessage != null) { %>
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> <%= errorMessage %>
+                </div>
+            <% } %>
+
             <div class="categories-grid">
                 <% for (Category category : categories) { %>
                     <div class="category-card">
@@ -131,10 +142,10 @@
                             <span class="category-name"><%= category.getName() %></span>
                             <% if (isAdmin) { %>
                                 <div class="category-actions admin-only">
-                                    <button class="action-btn edit-btn" onclick="editCategory('<%= category.getId() %>', '<%= category.getName() %>')">
+                                    <button class="action-btn edit-btn" data-id="<%= category.getId() %>" data-name="<%= category.getName() %>">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="action-btn delete-btn" onclick="deleteCategory('<%= category.getId() %>')">
+                                    <button class="action-btn delete-btn" data-id="<%= category.getId() %>">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -147,130 +158,84 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Profile click event
-        document.getElementById('profile-section').addEventListener('click', function() {
-            document.getElementById('profileOverlay').style.display = 'block';
-            document.getElementById('profileCard').style.display = 'block';
-        });
+<%-- Profile and Settings Modals (if they exist) --%>
+<div id="profileOverlay" class="overlay" style="display: none;"></div>
+<div id="profileCard" class="card profile-popup" style="display: none;">
+    <div class="avatar"><%= user.getUsername().substring(0, 1).toUpperCase() %></div>
+    <div class="profile-info">
+        <p><%= user.getUsername() %></p>
+        <p><%= user.getEmail() %></p>
+    </div>
+</div>
 
-        // Close popups when clicking overlay
-        document.getElementById('profileOverlay')?.addEventListener('click', function() {
-            this.style.display = 'none';
-            document.getElementById('profileCard').style.display = 'none';
-        });
+<div id="settingsOverlay" class="modal-overlay" style="display: none;"></div>
+<div id="settingsCard" class="modal settings-card" style="display: none;">
+    <div class="modal-header">
+        <h3 class="modal-title">Settings</h3>
+        <span class="modal-close">&times;</span>
+    </div>
+    <div class="modal-body">
+        <div class="card-item">
+            <span class="material-icons">lock</span>
+            <span>Change Password</span>
+        </div>
+        <div class="card-item">
+            <span class="material-icons">notifications</span>
+            <span>Notification Preferences</span>
+        </div>
+        <div class="card-item">
+            <span class="material-icons">privacy_tip</span>
+            <span>Privacy Settings</span>
+        </div>
+    </div>
+</div>
 
-        // Settings button click
-        document.querySelector('.settings-btn')?.addEventListener('click', function() {
-            document.getElementById('settingsOverlay').style.display = 'block';
-            document.getElementById('settingsCard').style.display = 'block';
-        });
+<!-- Hidden Form for Add/Edit Category Modal -->
+<div id="categoryFormContainer" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="categoryModalTitle">Add Category</h3>
+            <span class="modal-close" id="closeCategoryForm">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="categoryForm" method="POST" action="categories.jsp">
+                <input type="hidden" name="action" id="categoryFormAction">
+                <input type="hidden" name="id" id="categoryId">
 
-        // Filter categories
-        const filterInput = document.getElementById('filterInput');
-        if (filterInput) {
-            filterInput.addEventListener('input', function() {
-                const filterValue = this.value.toLowerCase();
-                document.querySelectorAll('.category-card').forEach(card => {
-                    const name = card.querySelector('.category-name').textContent.toLowerCase();
-                    card.style.display = name.includes(filterValue) ? 'flex' : 'none';
-                });
-            });
-        }
+                <div class="form-group">
+                    <label for="categoryName" class="form-label">Category Name:</label>
+                    <input type="text" name="name" id="categoryName" class="form-input" required>
+                </div>
 
-        // Add category button (only for admin)
-        const addBtn = document.getElementById('addCategoryBtn');
-        if (addBtn) {
-            addBtn.addEventListener('click', addNewCategory);
-        }
-    });
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Category</button>
+                    <button type="button" id="cancelCategoryForm" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    function deleteCategory(categoryId) {
-        if (!confirm('Are you sure you want to delete this category?')) return;
-        
-        fetch('../deleteCategory', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'categoryId=' + categoryId
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.text();
-        })
-        .then(data => {
-            if (data === "Success") {
-                alert("Category deleted successfully!");
-                location.reload();
-            } else {
-                alert("Failed to delete category: " + data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("Error deleting category. Please check console for details.");
-        });
-    }
+<!-- Hidden Confirmation Modal for Delete Category -->
+<div id="deleteCategoryConfirmModal" class="modal-overlay">
+    <div class="modal confirmation-dialog">
+        <div class="modal-header">
+            <h3 id="confirmCategoryModalTitle">Confirm Deletion</h3>
+            <span class="modal-close" id="closeDeleteConfirmModal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="icon-wrapper">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <p>Are you sure you want to delete this category?</p>
+        </div>
+        <div class="form-actions">
+            <button type="button" id="confirmDeleteCategoryBtn" class="btn btn-danger">Yes, Delete</button>
+            <button type="button" id="cancelDeleteCategoryBtn" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
 
-    function addNewCategory() {
-        const newCategoryName = prompt('Enter new category name:');
-        if (!newCategoryName || !newCategoryName.trim()) return;
-        
-        fetch('../addCategory', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'categoryName=' + encodeURIComponent(newCategoryName.trim())
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.text();
-        })
-        .then(data => {
-            if (data === "Success") {
-                alert("Category added successfully!");
-                location.reload();
-            } else {
-                alert("Failed to add category: " + data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("Error adding category. Please check console for details.");
-        });
-    }
-
-    function editCategory(categoryId, oldName) {
-        const newName = prompt('Edit category name:', oldName);
-        if (!newName || !newName.trim() || newName === oldName) return;
-        
-        fetch('../editCategory', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'categoryId=' + categoryId + '&newName=' + encodeURIComponent(newName.trim())
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.text();
-        })
-        .then(data => {
-            if (data === "Success") {
-                alert("Category updated successfully!");
-                location.reload();
-            } else {
-                alert("Failed to update category: " + data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("Error updating category. Please check console for details.");
-        });
-    }
-</script>
+<script src="../js/categories.js"></script>
 </body>
 </html>

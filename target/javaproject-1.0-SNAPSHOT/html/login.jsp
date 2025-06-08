@@ -94,8 +94,9 @@
     <!-- Welcome Section -->
     <div class="right-section">
       <h1>Hello, Friend!</h1>
-      <button class="signup-outline-btn" onclick="window.location.href='signup.jsp'">SIGN UP</button>
+      <button class="signup-outline-btn" id="signupBtn">SIGN UP</button>
     </div>
   </div>
+  <script src="../js/login.js"></script>
 </body>
 </html>

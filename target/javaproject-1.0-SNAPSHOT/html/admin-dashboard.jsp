@@ -99,12 +99,7 @@
                     </div>
                 </div>
                 
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <button class="action-btn" onclick="window.location.href='admin-categories.jsp'">
-                        <i class="fas fa-plus"></i> Add Category
-                    </button>
-                    </div>
+
                 
             </div>
         </div>

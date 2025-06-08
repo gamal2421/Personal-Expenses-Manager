@@ -8,7 +8,9 @@ body {
     align-items: center;
     min-height: 100vh;
 }
-
+.error-message{
+    color: red;
+}
 .container {
     display: flex;
     width: 900px;
