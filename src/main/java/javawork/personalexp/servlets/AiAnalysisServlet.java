@@ -25,6 +25,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.MediaType;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 @WebServlet("/AiAnalysisServlet")
 public class AiAnalysisServlet extends HttpServlet {
 
@@ -57,11 +60,23 @@ public class AiAnalysisServlet extends HttpServlet {
         super.destroy();
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    // Define Message class here for use in doPost
+    private static class Message {
+        public String role;
+        public String text;
+
+        public Message(String role, String text) {
+            this.role = role;
+            this.text = text;
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // Get user ID from session
+        // Check if user is authenticated
         String userEmail = (String) request.getSession().getAttribute("userEmail");
         if (userEmail == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -71,141 +86,156 @@ public class AiAnalysisServlet extends HttpServlet {
             return;
         }
 
-        int userId = Database.getUserIdByEmail(userEmail);
-
-        // Get selected month and year from request parameters
-        int selectedYear = Integer.parseInt(request.getParameter("year"));
-        int selectedMonth = Integer.parseInt(request.getParameter("month"));
-
-        // Fetch income and budget data for the user and selected period
-        List<Income> incomes = Database.getIncomesByMonth(userId, selectedYear, selectedMonth);
-        List<Map<String, Object>> budgets = Database.getAllBudgets(userId, selectedYear, selectedMonth);
-
-        // Prepare data for AI analysis
-        JsonObject requestBodyJson = new JsonObject();
-        JsonObject contents = new JsonObject();
-        List<JsonObject> parts = new ArrayList<>();
-
-        StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Analyze the following financial data for the user for the month of ")
-                     .append(selectedMonth).append("/").append(selectedYear).append(":\n\n");
-
-        promptBuilder.append("Income:\n");
-        if (incomes != null && !incomes.isEmpty()) {
-            for (Income income : incomes) {
-                promptBuilder.append("- Source: ").append(income.getSource())
-                             .append(", Amount: ").append(income.getAmount()).append("\n");
+        StringBuilder jsonRequest = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonRequest.append(line);
             }
-        } else {
-            promptBuilder.append("No income recorded.\n");
         }
 
-        promptBuilder.append("\nBudgets:\n");
-        if (budgets != null && !budgets.isEmpty()) {
-            for (Map<String, Object> budget : budgets) {
-                promptBuilder.append("- Category: ").append(budget.get("category"))
-                             .append(", Budgeted: ").append(budget.get("budget_amount"))
-                             .append(", Spent: ").append(budget.get("current_spending")).append("\n");
-            }
-        } else {
-            promptBuilder.append("No budgets set.\n");
-        }
-
-        // Construct the new direct prompt
-        promptBuilder.setLength(0); // Clear previous prompt content
-        promptBuilder.append("I will give you my monthly budget.\n");
-        promptBuilder.append("Just tell me directly if it's normal or not, where to reduce spending, where to increase (if needed), and how I can improve saving — all in simple, actionable advice only.\n");
-        promptBuilder.append("No summaries or restating my numbers. No long explanations. Just give me the answer.\n\n");
-        promptBuilder.append("Here is my budget:\n");
-
-        // Add income data to the prompt
-        promptBuilder.append("Income:\n");
-        if (incomes != null && !incomes.isEmpty()) {
-            for (Income income : incomes) {
-                promptBuilder.append("- Source: ").append(income.getSource())
-                             .append(", Amount: ").append(income.getAmount()).append("\n");
-            }
-        } else {
-            promptBuilder.append("No income recorded.\n");
-        }
-
-        // Add budget data to the prompt
-        promptBuilder.append("\nBudgets:\n");
-        if (budgets != null && !budgets.isEmpty()) {
-            for (Map<String, Object> budget : budgets) {
-                promptBuilder.append("- Category: ").append(budget.get("category"))
-                             .append(", Budgeted: ").append(budget.get("budget_amount"))
-                             .append(", Spent: ").append(budget.get("current_spending")).append("\n");
-            }
-        } else {
-            promptBuilder.append("No budgets set.\n");
-        }
-
-        String prompt = promptBuilder.toString();
-
-        JsonObject textPart = new JsonObject();
-        textPart.addProperty("text", prompt);
-        parts.add(textPart);
-
-        contents.add("parts", gson.toJsonTree(parts));
-        requestBodyJson.add("contents", gson.toJsonTree(List.of(contents)));
-
-        String jsonRequestBody = gson.toJson(requestBodyJson);
-
-        // Call Gemini API using OkHttp
-        String aiAnalysis = "Error retrieving analysis.";
         try {
-            RequestBody body = RequestBody.create(jsonRequestBody, JSON);
+            JsonObject requestJson = gson.fromJson(jsonRequest.toString(), JsonObject.class);
 
-            Request httpRequest = new Request.Builder()
-                    .url(GEMINI_API_URL + API_KEY)
-                    .addHeader("Content-Type", "application/json")
-                    .post(body)
-                    .build();
+            // Extract year and month from the JSON request
+            int year = 0;
+            int month = 0;
 
-            try (Response httpResponse = httpClient.newCall(httpRequest).execute()) {
-                String responseBody = httpResponse.body().string();
+            if (requestJson.has("year")) {
+                year = requestJson.get("year").getAsInt();
+            }
+            if (requestJson.has("month")) {
+                month = requestJson.get("month").getAsInt();
+            }
 
-                if (httpResponse.isSuccessful()) {
-                    // Parse the JSON response from Gemini API
-                    JsonObject geminiResponseJson = gson.fromJson(responseBody, JsonObject.class);
-                    if (geminiResponseJson != null && geminiResponseJson.has("candidates")) {
-                        // Extract the text from the first candidate's first part
-                        JsonObject candidate = geminiResponseJson.getAsJsonArray("candidates").get(0).getAsJsonObject();
-                        if (candidate.has("content") && candidate.getAsJsonObject("content").has("parts")) {
-                             JsonObject part = candidate.getAsJsonObject("content").getAsJsonArray("parts").get(0).getAsJsonObject();
-                             if (part.has("text")) {
-                                 aiAnalysis = part.get("text").getAsString();
-                             } else {
-                                aiAnalysis = "Error: Unexpected response format from AI (missing text part).";
-                             }
+            // If year or month are 0, default to current year and month
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            int currentYear = cal.get(java.util.Calendar.YEAR);
+            int currentMonth = cal.get(java.util.Calendar.MONTH) + 1; // Calendar.MONTH is 0-indexed
+
+            if (year == 0) {
+                year = currentYear;
+            }
+            if (month == 0) {
+                month = currentMonth;
+            }
+
+            // Fetch income and budget data for the user
+            int userId = Database.getUserIdByEmail(userEmail);
+            
+            List<Income> incomes = Database.getIncomesByMonth(userId, year, month);
+            List<Map<String, Object>> budgets = Database.getAllBudgets(userId, year, month);
+
+            // Build the prompt for Gemini API
+            StringBuilder promptBuilder = new StringBuilder();
+            promptBuilder.append("You are an AI financial assistant. Analyze the user's financial situation based on their income and budget data for the selected period. Provide simple, actionable advice. Avoid restating numbers unless necessary for context. Do not include summaries or long explanations unless explicitly asked.\n\n");
+            
+            promptBuilder.append("Financial Data (for the month of ").append(month).append("/").append(year).append("):\n");
+
+            promptBuilder.append("Income:\n");
+            if (incomes != null && !incomes.isEmpty()) {
+                for (Income income : incomes) {
+                    promptBuilder.append("- Source: ").append(income.getSource())
+                                 .append(", Amount: ").append(income.getAmount()).append("\n");
+                }
+            } else {
+                promptBuilder.append("No income recorded.\n");
+            }
+
+            promptBuilder.append("\nBudgets:\n");
+            if (budgets != null && !budgets.isEmpty()) {
+                for (Map<String, Object> budget : budgets) {
+                    promptBuilder.append("- Category: ").append(budget.get("category"))
+                                 .append(", Budgeted: ").append(budget.get("budget_amount"))
+                                 .append(", Spent: ").append(budget.get("current_spending")).append("\n");
+                }
+            } else {
+                promptBuilder.append("No budgets set.\n");
+            }
+
+            String prompt = promptBuilder.toString();
+
+            // Prepare request body for Gemini API
+            JsonObject contents = new JsonObject();
+            List<JsonObject> parts = new ArrayList<>();
+            JsonObject textPart = new JsonObject();
+            textPart.addProperty("text", prompt);
+            parts.add(textPart);
+            contents.add("parts", gson.toJsonTree(parts));
+            JsonObject requestBodyJson = new JsonObject();
+            requestBodyJson.add("contents", gson.toJsonTree(List.of(contents)));
+            String jsonRequestBody = gson.toJson(requestBodyJson);
+
+            // Call Gemini API using OkHttp
+            String aiAnalysis = "Error retrieving analysis from AI."; // Default error message
+            try {
+                RequestBody body = RequestBody.create(jsonRequestBody, JSON);
+
+                Request httpRequest = new Request.Builder()
+                        .url(GEMINI_API_URL + API_KEY)
+                        .addHeader("Content-Type", "application/json")
+                        .post(body)
+                        .build();
+
+                try (Response httpResponse = httpClient.newCall(httpRequest).execute()) {
+                    String responseBody = httpResponse.body().string();
+
+                    if (httpResponse.isSuccessful()) {
+                        JsonObject geminiResponseJson = gson.fromJson(responseBody, JsonObject.class);
+                        if (geminiResponseJson != null && geminiResponseJson.has("candidates")) {
+                            JsonObject candidate = geminiResponseJson.getAsJsonArray("candidates").get(0).getAsJsonObject();
+                            if (candidate.has("content") && candidate.getAsJsonObject("content").has("parts")) {
+                                 JsonObject part = candidate.getAsJsonObject("content").getAsJsonArray("parts").get(0).getAsJsonObject();
+                                 if (part.has("text")) {
+                                     // Ensure the JsonElement is not null before converting to string
+                                     com.google.gson.JsonElement textElement = part.get("text");
+                                     if (textElement != null && !textElement.isJsonNull()) {
+                                         aiAnalysis = textElement.getAsString();
+                                     } else {
+                                         aiAnalysis = "Error: AI response text is null or empty.";
+                                     }
+                                 } else {
+                                    aiAnalysis = "Error: Unexpected response format from AI (missing text part).";
+                                 }
+                            } else {
+                                 aiAnalysis = "Error: Unexpected response format from AI (missing content or parts).";
+                            }
                         } else {
-                             aiAnalysis = "Error: Unexpected response format from AI (missing content or parts).";
+                            aiAnalysis = "Error: Unexpected response format from AI (missing candidates).";
                         }
                     } else {
-                        aiAnalysis = "Error: Unexpected response format from AI (missing candidates).";
+                        aiAnalysis = "Error calling AI API: " + httpResponse.code() + " - " + responseBody;
                     }
-
-                } else {
-                     // Handle non-successful HTTP responses from the Gemini API
-                    aiAnalysis = "Error calling AI API: " + httpResponse.code() + " - " + responseBody;
                 }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                aiAnalysis = "Error communicating with AI API: " + e.getMessage();
+            } catch (JsonSyntaxException e) {
+                 e.printStackTrace();
+                 aiAnalysis = "Error parsing AI response from Gemini: " + e.getMessage();
+            } catch (Exception e) {
+                e.printStackTrace();
+                aiAnalysis = "An unexpected error occurred during AI call: " + e.getMessage();
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            aiAnalysis = "Error communicating with AI API: " + e.getMessage();
-        } catch (JsonSyntaxException e) {
-             e.printStackTrace();
-             aiAnalysis = "Error parsing AI response: " + e.getMessage();
-        } catch (Exception e) {
-            e.printStackTrace();
-            aiAnalysis = "An unexpected error occurred: " + e.getMessage();
-        }
+            // Prepare JSON response for the frontend
+            JsonObject jsonResponse = new JsonObject();
+            jsonResponse.addProperty("analysis", aiAnalysis);
+            response.getWriter().write(gson.toJson(jsonResponse));
 
-        // Prepare JSON response for the frontend
-        JsonObject jsonResponse = new JsonObject();
-        jsonResponse.addProperty("analysis", aiAnalysis);
-        response.getWriter().write(gson.toJson(jsonResponse));
+        } catch (JsonSyntaxException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            JsonObject errorResponse = new JsonObject();
+            errorResponse.addProperty("error", "Invalid JSON format in request: " + e.getMessage());
+            response.getWriter().write(gson.toJson(errorResponse));
+            e.printStackTrace();
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            JsonObject errorResponse = new JsonObject();
+            errorResponse.addProperty("error", "An unexpected server error occurred: " + e.getMessage());
+            response.getWriter().write(gson.toJson(errorResponse));
+            e.printStackTrace();
+        }
     }
 } 

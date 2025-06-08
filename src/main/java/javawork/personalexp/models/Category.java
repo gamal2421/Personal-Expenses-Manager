@@ -1,5 +1,7 @@
 package javawork.personalexp.models;
 
+import org.json.JSONObject;
+
 public class Category {
     private int id;
     private String name;
@@ -35,5 +37,13 @@ public class Category {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    // Method to convert Category object to JSON
+    public JSONObject toJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", this.id);
+        jsonObject.put("name", this.name);
+        return jsonObject;
     }
 }

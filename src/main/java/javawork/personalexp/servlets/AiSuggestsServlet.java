@@ -107,6 +107,15 @@ public class AiSuggestsServlet extends HttpServlet {
             int year = now.get(Calendar.YEAR);
             int month = now.get(Calendar.MONTH) + 1; // Calendar.MONTH is 0-indexed
 
+            // Ensure year and month are valid (not 0, which can happen if client-side doesn't send them)
+            // If they are 0, default to current year and month
+            if (year == 0) {
+                year = now.get(Calendar.YEAR);
+            }
+            if (month == 0) {
+                month = now.get(Calendar.MONTH) + 1;
+            }
+
             // Fetch financial data
             List<Income> incomes = Database.getIncomesByMonth(userId, year, month);
             List<Map<String, Object>> budgets = Database.getAllBudgets(userId, year, month);
@@ -209,7 +218,12 @@ public class AiSuggestsServlet extends HttpServlet {
                         if (candidate.has("content") && candidate.getAsJsonObject("content").has("parts") && candidate.getAsJsonObject("content").getAsJsonArray("parts").size() > 0) {
                              JsonObject part = candidate.getAsJsonObject("content").getAsJsonArray("parts").get(0).getAsJsonObject();
                              if (part.has("text")) {
-                                 aiResponseText = part.get("text").getAsString();
+                                 com.google.gson.JsonElement textElement = part.get("text");
+                                 if (textElement != null && !textElement.isJsonNull()) {
+                                     aiResponseText = textElement.getAsString();
+                                 } else {
+                                     aiResponseText = "Error: AI response text is null or empty.";
+                                 }
                              } else {
                                 aiResponseText = "Error: Unexpected response format from AI (missing text part in candidate).";
                              }
@@ -229,10 +243,10 @@ public class AiSuggestsServlet extends HttpServlet {
             aiResponseText = "Error communicating with AI API: " + e.getMessage();
         } catch (JsonSyntaxException e) {
              e.printStackTrace();
-             aiResponseText = "Error parsing AI response: " + e.getMessage();
+             aiResponseText = "Error parsing AI response from Gemini: " + e.getMessage();
         } catch (Exception e) {
             e.printStackTrace();
-            aiResponseText = "An unexpected error occurred: " + e.getMessage();
+            aiResponseText = "An unexpected error occurred during AI call: " + e.getMessage();
         }
 
         // Send AI response back to frontend

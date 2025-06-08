@@ -427,3 +427,8 @@ tr:hover td {
     margin-bottom: 8px; /* Space below the title */
     font-size: 16px;
 }
+
+/* Hidden Data */
+.hidden-data {
+    display: none;
+}
