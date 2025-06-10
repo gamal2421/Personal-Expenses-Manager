@@ -35,6 +35,7 @@
     <meta property="twitter:title" content="Personal Expenses Manager - Manage Your Finances">
     <meta property="twitter:description" content="Easily track and manage your personal expenses, income, and budgets with Personal Expenses Manager. Set financial goals and gain insights into your spending habits.">
     <meta property="twitter:image" content="<%= request.getContextPath() %>/icons/android-chrome-512x512.png">
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="151626" async data-cfasync="false"></script>
 </head>
 <body>
     <header>
